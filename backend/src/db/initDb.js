@@ -1,0 +1,52 @@
+const fs = require('fs');
+const path = require('path');
+const { pool } = require('../config/db');
+
+async function initializeDatabase() {
+  const client = await pool.connect();
+  console.log('[DB Init] Connected to PostgreSQL. Starting schema and seed execution...');
+
+  try {
+    const schemaPath = path.join(__dirname, 'schema.sql');
+    const seedPath = path.join(__dirname, 'seed.sql');
+
+    const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+    const seedSql = fs.readFileSync(seedPath, 'utf8');
+
+    // 1. Run Schema (DDL)
+    console.log('[DB Init] Applying schema.sql (tables, constraints, indexes)...');
+    await client.query(schemaSql);
+    console.log('[DB Init] Schema created successfully.');
+
+    // 2. Run Seed (DML)
+    console.log('[DB Init] Applying seed.sql (test accounts, projects, tasks)...');
+    await client.query(seedSql);
+    console.log('[DB Init] Seed data inserted successfully.');
+
+    // 3. Verify Counts
+    const usersCount = await client.query('SELECT COUNT(*) FROM users');
+    const projectsCount = await client.query('SELECT COUNT(*) FROM projects');
+    const tasksCount = await client.query('SELECT COUNT(*) FROM tasks');
+    const overdueCount = await client.query(
+      "SELECT COUNT(*) FROM tasks WHERE due_date < CURRENT_DATE AND status != 'Completed'"
+    );
+
+    console.log('\n======================================================');
+    console.log('   DATABASE INITIALIZATION REPORT');
+    console.log('======================================================');
+    console.log(`- Users in Database:    ${usersCount.rows[0].count} (2 Admins, 5 Members)`);
+    console.log(`- Projects in Database: ${projectsCount.rows[0].count}`);
+    console.log(`- Tasks in Database:    ${tasksCount.rows[0].count}`);
+    console.log(`- Overdue Tasks:        ${overdueCount.rows[0].count}`);
+    console.log('======================================================\n');
+
+  } catch (error) {
+    console.error('[DB Init Error] Failed to initialize database:', error);
+    process.exit(1);
+  } finally {
+    client.release();
+    await pool.end();
+  }
+}
+
+initializeDatabase();
