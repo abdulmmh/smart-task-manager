@@ -1,6 +1,5 @@
 -- ========================================================
 -- Smart Task & Project Management System — PostgreSQL Schema
--- Evaluation: Bright Mind Ltd. Technical Recruitment
 -- ========================================================
 
 -- Enable cryptographic functions for UUID generation
