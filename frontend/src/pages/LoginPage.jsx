@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ShieldCheck, UserCheck, AlertCircle } from 'lucide-react';
+import { ShieldCheck, UserCheck, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -13,15 +14,20 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setError('');
-    setIsSubmitting(true);
 
+    if (!email.trim() || !password) {
+      setError('Please provide both email and password.');
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      await login(email, password);
+      await login(email.trim(), password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.error || 'Invalid credentials. Please try again.');
+      setError(err.response?.data?.error || 'Invalid email or password.');
     } finally {
       setIsSubmitting(false);
     }
@@ -30,6 +36,7 @@ export default function LoginPage() {
   const fillCredentials = (demoEmail, demoPassword) => {
     setEmail(demoEmail);
     setPassword(demoPassword);
+    setShowPassword(true); // Reveal password so user sees it clearly
     setError('');
   };
 
@@ -109,15 +116,41 @@ export default function LoginPage() {
 
           <div className="form-group" style={{ marginBottom: '24px' }}>
             <label className="form-label" htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              required
-              className="input-field"
-              placeholder="Enter your account password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                className="input-field"
+                style={{ paddingRight: '40px' }}
+                placeholder="Enter your account password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '4px'
+                }}
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            <span style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px', display: 'block' }}>
+              Demo password for all accounts: <code>password123</code>
+            </span>
           </div>
 
           <button
@@ -130,33 +163,44 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* 1-Click Demo Fill Buttons for Interviewers */}
+        {/* 1-Click Instant Demo Login Buttons */}
         <div style={{
           marginTop: '28px',
           paddingTop: '20px',
           borderTop: '1px solid #e2e8f0'
         }}>
           <p style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#94a3b8', marginBottom: '10px', letterSpacing: '0.5px' }}>
-            ⚡ 1-Click Demo Accounts (For Evaluation)
+            ⚡ Demo Accounts (Click to Fill Fields)
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <button
               type="button"
               onClick={() => fillCredentials('alex.admin@brightmind.com', 'password123')}
               className="btn btn-secondary btn-sm"
-              style={{ justifyContent: 'flex-start', padding: '8px 12px' }}
+              style={{ justifyContent: 'space-between', padding: '10px 14px' }}
             >
-              <ShieldCheck size={16} color="#4f46e5" />
-              <span>Fill <strong>Admin</strong> (Alex Turner)</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ShieldCheck size={16} color="#4f46e5" />
+                <span>Fill <strong>Admin</strong> (Alex Turner)</span>
+              </span>
+              <span style={{ fontSize: '11px', color: '#6366f1', background: '#eef2ff', padding: '2px 6px', borderRadius: '4px' }}>
+                Full Access
+              </span>
             </button>
+
             <button
               type="button"
               onClick={() => fillCredentials('john.dev@brightmind.com', 'password123')}
               className="btn btn-secondary btn-sm"
-              style={{ justifyContent: 'flex-start', padding: '8px 12px' }}
+              style={{ justifyContent: 'space-between', padding: '10px 14px' }}
             >
-              <UserCheck size={16} color="#059669" />
-              <span>Fill <strong>Team Member</strong> (John Smith)</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <UserCheck size={16} color="#059669" />
+                <span>Fill <strong>Team Member</strong> (John Smith)</span>
+              </span>
+              <span style={{ fontSize: '11px', color: '#059669', background: '#dcfce7', padding: '2px 6px', borderRadius: '4px' }}>
+                Member View
+              </span>
             </button>
           </div>
         </div>

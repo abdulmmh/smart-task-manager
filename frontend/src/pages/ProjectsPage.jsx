@@ -116,7 +116,9 @@ export default function ProjectsPage() {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '28px'
+        marginBottom: '28px',
+        flexWrap: 'wrap',
+        gap: '16px'
       }}>
         <div>
           <h1 style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a' }}>
@@ -170,16 +172,17 @@ export default function ProjectsPage() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                 <div style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '10px',
-                  backgroundColor: '#eef2ff',
-                  color: '#4f46e5',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '6px',
+                  backgroundColor: '#f4f4f5',
+                  color: '#18181b',
+                  border: '1px solid #e4e4e7',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <FolderKanban size={20} />
+                  <FolderKanban size={16} />
                 </div>
 
                 {isAdmin && (

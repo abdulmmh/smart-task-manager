@@ -214,7 +214,9 @@ export default function TasksPage() {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '24px'
+        marginBottom: '24px',
+        flexWrap: 'wrap',
+        gap: '16px'
       }}>
         <div>
           <h1 style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a' }}>
@@ -389,8 +391,8 @@ export default function TasksPage() {
                           width: '22px',
                           height: '22px',
                           borderRadius: '50%',
-                          backgroundColor: '#e0e7ff',
-                          color: '#4f46e5',
+                          backgroundColor: '#18181b',
+                          color: '#ffffff',
                           fontSize: '11px',
                           fontWeight: '700',
                           display: 'flex',

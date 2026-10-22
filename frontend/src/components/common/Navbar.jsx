@@ -19,18 +19,20 @@ export default function Navbar({ title = 'Overview' }) {
   return (
     <header className="topbar">
       <div className="topbar-left">
-        <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a' }}>{title}</h2>
+        <h2 className="topbar-title">
+          {title}
+        </h2>
       </div>
 
       <div className="topbar-right">
         {user && (
           <div className="user-badge">
             <div className="user-avatar">{getInitials(user.name)}</div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '13px', fontWeight: '600', color: '#0f172a' }}>
+            <div className="user-info-text">
+              <span className="user-name">
                 {user.name}
               </span>
-              <span style={{ fontSize: '11px', color: '#64748b' }}>
+              <span className="user-email">
                 {user.email}
               </span>
             </div>
@@ -44,7 +46,7 @@ export default function Navbar({ title = 'Overview' }) {
           className="btn btn-secondary btn-sm"
           title="Sign out of system"
         >
-          <LogOut size={16} />
+          <LogOut size={13} />
           <span>Logout</span>
         </button>
       </div>

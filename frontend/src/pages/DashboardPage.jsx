@@ -7,7 +7,7 @@ import {
   CheckSquare, 
   CheckCircle2, 
   Clock, 
-  AlertTriangle, 
+  AlertCircle, 
   ArrowRight,
   RefreshCw
 } from 'lucide-react';
@@ -38,10 +38,10 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '60px', color: '#4f46e5' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-          <RefreshCw className="animate-spin" size={28} />
-          <span>Loading organization metrics...</span>
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '60px', color: '#71717a' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+          <RefreshCw className="animate-spin" size={24} />
+          <span style={{ fontSize: '13px' }}>Syncing metrics...</span>
         </div>
       </div>
     );
@@ -50,7 +50,7 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="alert-banner">
-        <AlertTriangle size={20} color="#b91c1c" />
+        <AlertCircle size={18} color="#b91c1c" />
         <div>
           <div className="alert-title">System Error</div>
           <div className="alert-desc">{error}</div>
@@ -68,19 +68,19 @@ export default function DashboardPage() {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '28px',
+        marginBottom: '24px',
         background: '#ffffff',
-        padding: '24px',
-        borderRadius: '12px',
-        border: '1px solid #e2e8f0',
-        boxShadow: 'var(--shadow-sm)'
+        padding: '20px 24px',
+        borderRadius: '8px',
+        border: '1px solid #e4e4e7',
+        boxShadow: 'var(--shadow-xs)'
       }}>
         <div>
-          <h1 style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a' }}>
+          <h1 style={{ fontSize: '20px', fontWeight: '700', color: '#09090b', letterSpacing: '-0.3px' }}>
             Welcome back, {user?.name}
           </h1>
-          <p style={{ fontSize: '14px', color: '#64748b', marginTop: '4px' }}>
-            System overview for Bright Mind Ltd. Here is your team's live task velocity and deadline status.
+          <p style={{ fontSize: '13.5px', color: '#52525b', marginTop: '2px' }}>
+            Here is your live team velocity, project health, and deadline tracking overview.
           </p>
         </div>
 
@@ -90,7 +90,7 @@ export default function DashboardPage() {
           className="btn btn-secondary btn-sm"
           title="Refresh metrics from PostgreSQL"
         >
-          <RefreshCw size={14} />
+          <RefreshCw size={13} />
           <span>Refresh</span>
         </button>
       </div>
@@ -101,38 +101,38 @@ export default function DashboardPage() {
         <div className="metric-card">
           <div className="metric-header">
             <span className="metric-label">Total Projects</span>
-            <div className="metric-icon-box" style={{ backgroundColor: '#eef2ff', color: '#4f46e5' }}>
-              <FolderKanban size={18} />
+            <div className="metric-icon-box">
+              <FolderKanban size={15} />
             </div>
           </div>
           <div className="metric-value">{metrics.total_projects}</div>
-          <span style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>Active portfolios</span>
+          <span style={{ fontSize: '12px', color: '#71717a', marginTop: '6px' }}>Active portfolios</span>
         </div>
 
         {/* Metric 2: Total Tasks */}
         <div className="metric-card">
           <div className="metric-header">
             <span className="metric-label">Total Tasks</span>
-            <div className="metric-icon-box" style={{ backgroundColor: '#f1f5f9', color: '#334155' }}>
-              <CheckSquare size={18} />
+            <div className="metric-icon-box">
+              <CheckSquare size={15} />
             </div>
           </div>
           <div className="metric-value">{metrics.total_tasks}</div>
-          <span style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>Across all projects</span>
+          <span style={{ fontSize: '12px', color: '#71717a', marginTop: '6px' }}>Across all initiatives</span>
         </div>
 
         {/* Metric 3: Completed Tasks */}
         <div className="metric-card">
           <div className="metric-header">
-            <span className="metric-label">Completed Tasks</span>
-            <div className="metric-icon-box" style={{ backgroundColor: '#dcfce7', color: '#16a34a' }}>
-              <CheckCircle2 size={18} />
+            <span className="metric-label">Completed</span>
+            <div className="metric-icon-box" style={{ color: '#15803d' }}>
+              <CheckCircle2 size={15} />
             </div>
           </div>
-          <div className="metric-value" style={{ color: '#15803d' }}>
+          <div className="metric-value">
             {metrics.completed_tasks}
           </div>
-          <span style={{ fontSize: '12px', color: '#16a34a', marginTop: '6px', fontWeight: '500' }}>
+          <span style={{ fontSize: '12px', color: '#15803d', marginTop: '6px', fontWeight: '500' }}>
             {metrics.completion_rate}% completion rate
           </span>
         </div>
@@ -140,68 +140,54 @@ export default function DashboardPage() {
         {/* Metric 4: Pending Tasks */}
         <div className="metric-card">
           <div className="metric-header">
-            <span className="metric-label">Pending Tasks</span>
-            <div className="metric-icon-box" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>
-              <Clock size={18} />
+            <span className="metric-label">In Flight</span>
+            <div className="metric-icon-box" style={{ color: '#b45309' }}>
+              <Clock size={15} />
             </div>
           </div>
-          <div className="metric-value" style={{ color: '#b45309' }}>
+          <div className="metric-value">
             {metrics.pending_tasks}
           </div>
-          <span style={{ fontSize: '12px', color: '#b45309', marginTop: '6px' }}>
+          <span style={{ fontSize: '12px', color: '#71717a', marginTop: '6px' }}>
             To Do & In Progress
           </span>
         </div>
 
         {/* Metric 5: Overdue Tasks */}
-        <div className="metric-card" style={{ borderColor: metrics.overdue_tasks > 0 ? '#fca5a5' : '#e2e8f0' }}>
+        <div className="metric-card" style={{ borderColor: metrics.overdue_tasks > 0 ? '#fecaca' : '#e4e4e7' }}>
           <div className="metric-header">
-            <span className="metric-label" style={{ color: metrics.overdue_tasks > 0 ? '#b91c1c' : '#475569' }}>
-              Overdue Tasks
+            <span className="metric-label" style={{ color: metrics.overdue_tasks > 0 ? '#b91c1c' : '#71717a' }}>
+              Overdue
             </span>
-            <div className="metric-icon-box" style={{ backgroundColor: '#fee2e2', color: '#dc2626' }}>
-              <AlertTriangle size={18} />
+            <div className="metric-icon-box" style={{ color: metrics.overdue_tasks > 0 ? '#b91c1c' : '#71717a' }}>
+              <AlertCircle size={15} />
             </div>
           </div>
-          <div className="metric-value" style={{ color: metrics.overdue_tasks > 0 ? '#dc2626' : '#0f172a' }}>
+          <div className="metric-value" style={{ color: metrics.overdue_tasks > 0 ? '#b91c1c' : '#09090b' }}>
             {metrics.overdue_tasks}
           </div>
-          <span style={{ fontSize: '12px', color: '#dc2626', marginTop: '6px', fontWeight: '600' }}>
-            {metrics.overdue_tasks > 0 ? 'Requires attention' : 'All deadlines on track'}
+          <span style={{ fontSize: '12px', color: metrics.overdue_tasks > 0 ? '#b91c1c' : '#71717a', marginTop: '6px', fontWeight: '500' }}>
+            {metrics.overdue_tasks > 0 ? 'Requires attention' : 'All targets on schedule'}
           </span>
         </div>
       </div>
 
       {/* Overdue Task Notification Banner (Bonus Criterion) */}
       {overdueAlerts && overdueAlerts.length > 0 && (
-        <div className="card" style={{ borderLeft: '4px solid #dc2626' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                backgroundColor: '#fee2e2',
-                color: '#dc2626',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <AlertTriangle size={18} />
-              </div>
+        <div className="card" style={{ borderColor: '#fecaca', backgroundColor: '#fffafa' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertCircle size={16} color="#b91c1c" />
               <div>
-                <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#991b1b' }}>
-                  Urgent Attention: Overdue Tasks Detected ({metrics.overdue_tasks})
+                <h3 style={{ fontSize: '14.5px', fontWeight: '700', color: '#991b1b' }}>
+                  Overdue Tasks Requiring Action ({metrics.overdue_tasks})
                 </h3>
-                <p style={{ fontSize: '13px', color: '#7f1d1d' }}>
-                  The following tasks have passed their target deadlines without completion.
-                </p>
               </div>
             </div>
 
-            <Link to="/tasks?overdue=true" className="btn btn-danger btn-sm">
-              <span>View All Overdue</span>
-              <ArrowRight size={14} />
+            <Link to="/tasks?overdue=true" className="btn btn-secondary btn-sm" style={{ color: '#991b1b', borderColor: '#fecaca' }}>
+              <span>View In Task Board</span>
+              <ArrowRight size={13} />
             </Link>
           </div>
 
@@ -219,9 +205,9 @@ export default function DashboardPage() {
               <tbody>
                 {overdueAlerts.map((task) => (
                   <tr key={task.id}>
-                    <td style={{ fontWeight: '600', color: '#0f172a' }}>{task.title}</td>
-                    <td>{task.project_name}</td>
-                    <td>{task.assignee_name || 'Unassigned'}</td>
+                    <td style={{ fontWeight: '600', color: '#09090b' }}>{task.title}</td>
+                    <td style={{ color: '#52525b' }}>{task.project_name}</td>
+                    <td>{task.assignee_name || <em style={{ color: '#a1a1aa' }}>Unassigned</em>}</td>
                     <td>
                       <Badge isOverdue={true} value={task.due_date} />
                     </td>
@@ -241,24 +227,24 @@ export default function DashboardPage() {
         <div className="card-header">
           <div>
             <h3 className="card-title">Project Progress & Completion Velocity</h3>
-            <p style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-              Real-time completion percentage based on task status resolution.
+            <p style={{ fontSize: '13px', color: '#71717a', marginTop: '2px' }}>
+              Real-time task resolution metrics aggregated across all active portfolios.
             </p>
           </div>
           <Link to="/projects" className="btn btn-secondary btn-sm">
-            <span>Manage Projects</span>
-            <ArrowRight size={14} />
+            <span>Portfolio View</span>
+            <ArrowRight size={13} />
           </Link>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {projectSummaries.map((proj) => (
-            <div key={proj.id} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div key={proj.id} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '14px', fontWeight: '600', color: '#0f172a' }}>
+                <span style={{ fontSize: '13.5px', fontWeight: '600', color: '#09090b' }}>
                   {proj.name}
                 </span>
-                <span style={{ fontSize: '13px', color: '#64748b' }}>
+                <span style={{ fontSize: '12.5px', color: '#71717a', fontFamily: 'ui-monospace, monospace' }}>
                   {proj.completed_tasks} / {proj.total_tasks} tasks ({proj.progress}%)
                 </span>
               </div>
