@@ -101,16 +101,23 @@ async function createProject(req, res, next) {
 async function updateProject(req, res, next) {
   try {
     const { id } = req.params;
-    const { name, description } = req.body;
+    const hasName = 'name' in req.body;
+    const hasDesc = 'description' in req.body;
 
     const result = await query(
       `UPDATE projects
-       SET name = COALESCE($1, name),
-           description = COALESCE($2, description),
+       SET name = CASE WHEN $1::boolean THEN $2 ELSE name END,
+           description = CASE WHEN $3::boolean THEN $4 ELSE description END,
            updated_at = NOW()
-       WHERE id = $3
+       WHERE id = $5
        RETURNING *`,
-      [name ? name.trim() : null, description !== undefined ? description : null, id]
+      [
+        hasName,
+        name ? name.trim() : null,
+        hasDesc,
+        description !== undefined && description !== null ? description.trim() : null,
+        id,
+      ]
     );
 
     if (result.rows.length === 0) {

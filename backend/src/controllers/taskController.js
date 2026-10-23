@@ -12,7 +12,13 @@ const { query } = require('../config/db');
  */
 async function getTasks(req, res, next) {
   try {
-    const { search, projectId, status, priority, assigneeId, overdue } = req.query;
+    const rawSearch = req.query.search;
+    const search = typeof rawSearch === 'string' ? rawSearch : Array.isArray(rawSearch) ? rawSearch[0] : '';
+    const projectId = req.query.projectId || req.query.project_id;
+    const status = req.query.status;
+    const priority = req.query.priority;
+    const assigneeId = req.query.assigneeId || req.query.assignee_id;
+    const overdue = req.query.overdue;
 
     const conditions = [];
     const values = [];
@@ -73,6 +79,7 @@ async function getTasks(req, res, next) {
       ${whereClause}
       ORDER BY 
         CASE WHEN t.due_date < CURRENT_DATE AND t.status != 'Completed' THEN 0 ELSE 1 END,
+        CASE t.priority WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 WHEN 'Low' THEN 3 ELSE 4 END,
         t.due_date ASC NULLS LAST,
         t.created_at DESC;
     `;
@@ -203,7 +210,14 @@ async function updateTask(req, res, next) {
         });
       }
 
-      // Member can only change status
+      // Member can only change status — reject if other fields are present
+      const forbiddenKeys = Object.keys(req.body).filter((key) => key !== 'status');
+      if (forbiddenKeys.length > 0) {
+        return res.status(403).json({
+          error: 'Access denied. Team members are only permitted to update task status.'
+        });
+      }
+
       if (!status) {
         return res.status(400).json({ error: 'Status update is required.' });
       }
@@ -223,30 +237,43 @@ async function updateTask(req, res, next) {
     }
 
     // Admin updating:
+    const hasTitle = 'title' in req.body;
+    const hasDesc = 'description' in req.body;
+    const hasStatus = 'status' in req.body;
+    const hasPriority = 'priority' in req.body;
+    const hasDueDate = 'due_date' in req.body;
+    const hasProjectId = 'project_id' in req.body;
+    const hasAssignee = 'assignee_id' in req.body;
+
     const updateSql = `
       UPDATE tasks
       SET 
-        title = COALESCE($1, title),
-        description = COALESCE($2, description),
-        status = COALESCE($3, status),
-        priority = COALESCE($4, priority),
-        due_date = COALESCE($5, due_date),
-        project_id = COALESCE($6, project_id),
-        assignee_id = CASE WHEN $7::boolean = true THEN $8 ELSE assignee_id END,
+        title = CASE WHEN $1::boolean THEN $2 ELSE title END,
+        description = CASE WHEN $3::boolean THEN $4 ELSE description END,
+        status = CASE WHEN $5::boolean THEN $6 ELSE status END,
+        priority = CASE WHEN $7::boolean THEN $8 ELSE priority END,
+        due_date = CASE WHEN $9::boolean THEN $10::date ELSE due_date END,
+        project_id = CASE WHEN $11::boolean THEN $12::uuid ELSE project_id END,
+        assignee_id = CASE WHEN $13::boolean THEN $14::uuid ELSE assignee_id END,
         updated_at = NOW()
-      WHERE id = $9
+      WHERE id = $15
       RETURNING *;
     `;
 
-    const assigneeProvided = assignee_id !== undefined;
     const result = await query(updateSql, [
+      hasTitle,
       title ? title.trim() : null,
-      description !== undefined ? description : null,
+      hasDesc,
+      description !== undefined && description !== null ? description.trim() : null,
+      hasStatus,
       status || null,
+      hasPriority,
       priority || null,
-      due_date !== undefined ? due_date : null,
+      hasDueDate,
+      due_date || null,
+      hasProjectId,
       project_id || null,
-      assigneeProvided,
+      hasAssignee,
       assignee_id || null,
       id,
     ]);

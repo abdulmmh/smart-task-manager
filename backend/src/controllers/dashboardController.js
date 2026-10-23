@@ -36,7 +36,9 @@ async function getDashboardMetrics(req, res, next) {
       JOIN projects p ON t.project_id = p.id
       LEFT JOIN users u ON t.assignee_id = u.id
       WHERE t.due_date < CURRENT_DATE AND t.status != 'Completed'
-      ORDER BY t.due_date ASC, t.priority DESC
+      ORDER BY 
+        t.due_date ASC, 
+        CASE t.priority WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 WHEN 'Low' THEN 3 ELSE 4 END
       LIMIT 5;
     `;
     const overdueResult = await query(overdueSql);
