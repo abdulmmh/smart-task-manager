@@ -372,7 +372,7 @@ export default function TasksPage() {
 
       {error && (
         <div className="alert-banner">
-          <AlertTriangle size={20} color="#b91c1c" />
+          <AlertTriangle size={20} color="var(--danger)" />
           <div className="alert-desc">{error}</div>
         </div>
       )}
@@ -519,9 +519,9 @@ export default function TasksPage() {
       >
         {formError && (
           <div style={{
-            backgroundColor: '#fee2e2',
-            color: '#b91c1c',
-            border: '1px solid #fecaca',
+            backgroundColor: 'var(--danger-bg)',
+            color: 'var(--danger)',
+            border: '1px solid var(--danger-border)',
             padding: '10px 14px',
             borderRadius: '6px',
             fontSize: '13px',
@@ -686,7 +686,7 @@ export default function TasksPage() {
         title="Confirm Task Deletion"
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <p style={{ fontSize: '14px', color: '#475569' }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
             Are you sure you want to delete task <strong>"{deleteTarget?.title}"</strong>?
           </p>
           <div className="modal-footer" style={{ margin: '-24px -24px -24px -24px', marginTop: '16px' }}>

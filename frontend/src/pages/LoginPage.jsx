@@ -180,13 +180,13 @@ export default function LoginPage() {
               type="button"
               onClick={() => fillCredentials('alex.admin@brightmind.com', 'password123')}
               className="btn btn-secondary btn-sm"
-              style={{ justifyContent: 'space-between', padding: '10px 14px' }}
+              style={{ justifyContent: 'space-between', padding: '10px 12px', flexWrap: 'wrap', gap: '6px' }}
             >
-              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldCheck size={16} color="var(--navy-ocean)" />
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, textAlign: 'left' }}>
+                <ShieldCheck size={16} color="var(--navy-ocean)" style={{ flexShrink: 0 }} />
                 <span>Fill <strong>Admin</strong> (Alex Turner)</span>
               </span>
-              <span style={{ fontSize: '11px', color: 'var(--navy-ocean)', background: 'var(--bg-subtle)', padding: '2px 6px', borderRadius: '4px', fontWeight: '600' }}>
+              <span style={{ fontSize: '11px', color: 'var(--navy-ocean)', background: 'var(--bg-subtle)', padding: '2px 6px', borderRadius: '4px', fontWeight: '600', whiteSpace: 'nowrap', flexShrink: 0 }}>
                 Full Access
               </span>
             </button>
@@ -195,13 +195,13 @@ export default function LoginPage() {
               type="button"
               onClick={() => fillCredentials('john.dev@brightmind.com', 'password123')}
               className="btn btn-secondary btn-sm"
-              style={{ justifyContent: 'space-between', padding: '10px 14px' }}
+              style={{ justifyContent: 'space-between', padding: '10px 12px', flexWrap: 'wrap', gap: '6px' }}
             >
-              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <UserCheck size={16} color="var(--success)" />
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, textAlign: 'left' }}>
+                <UserCheck size={16} color="var(--success)" style={{ flexShrink: 0 }} />
                 <span>Fill <strong>Team Member</strong> (John Smith)</span>
               </span>
-              <span style={{ fontSize: '11px', color: 'var(--success)', background: 'var(--success-bg)', padding: '2px 6px', borderRadius: '4px', fontWeight: '600' }}>
+              <span style={{ fontSize: '11px', color: 'var(--success)', background: 'var(--success-bg)', padding: '2px 6px', borderRadius: '4px', fontWeight: '600', whiteSpace: 'nowrap', flexShrink: 0 }}>
                 Member View
               </span>
             </button>

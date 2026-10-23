@@ -280,9 +280,9 @@ export default function ProjectsPage() {
       >
         {formError && (
           <div style={{
-            backgroundColor: '#fee2e2',
-            color: '#b91c1c',
-            border: '1px solid #fecaca',
+            backgroundColor: 'var(--danger-bg)',
+            color: 'var(--danger)',
+            border: '1px solid var(--danger-border)',
             padding: '10px 14px',
             borderRadius: '6px',
             fontSize: '13px',
@@ -344,16 +344,16 @@ export default function ProjectsPage() {
         title="Confirm Project Deletion"
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <p style={{ fontSize: '14px', color: '#475569' }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
             Are you sure you want to delete <strong>"{deleteTarget?.name}"</strong>?
           </p>
           <div style={{
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fee2e2',
+            backgroundColor: 'var(--danger-bg)',
+            border: '1px solid var(--danger-border)',
             borderRadius: '8px',
             padding: '12px',
             fontSize: '13px',
-            color: '#991b1b'
+            color: 'var(--danger)'
           }}>
             ⚠️ <strong>Cascading Delete:</strong> This will permanently delete all tasks associated with this project. This action cannot be undone.
           </div>

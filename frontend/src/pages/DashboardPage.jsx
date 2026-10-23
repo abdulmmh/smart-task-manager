@@ -52,7 +52,7 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '60px', color: '#71717a' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '60px', color: 'var(--text-muted)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
           <RefreshCw className="animate-spin" size={24} />
           <span style={{ fontSize: '13px' }}>Syncing metrics...</span>
@@ -255,10 +255,10 @@ export default function DashboardPage() {
           {projectSummaries.map((proj) => (
             <div key={proj.id} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '13.5px', fontWeight: '600', color: '#09090b' }}>
+                <span style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-primary)' }}>
                   {proj.name}
                 </span>
-                <span style={{ fontSize: '12.5px', color: '#71717a', fontFamily: 'ui-monospace, monospace' }}>
+                <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontFamily: 'ui-monospace, monospace' }}>
                   {proj.completed_tasks} / {proj.total_tasks} tasks ({proj.progress}%)
                 </span>
               </div>
