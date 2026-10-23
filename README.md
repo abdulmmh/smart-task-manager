@@ -53,7 +53,7 @@ graph TD
     AuthMW --> ValMW
     ValMW --> Controllers["Controllers (Auth, Projects, Tasks, Dashboard)"]
     Controllers --> ErrMW
-    Controllers -->|pg.Pool (Parameterized SQL)| DB
+    Controllers -->|"Parameterized SQL"| DB
 ```
 
 ---
@@ -107,39 +107,39 @@ The database schema is strictly normalized and enforced with database-level cons
 ```mermaid
 erDiagram
     USERS ||--o{ TASKS : "assigned_to"
-    PROJECTS ||--o{ TASKS : "belongs_to"
+    PROJECTS ||--o{ TASKS : "contains"
 
     USERS {
-        UUID id PK "gen_random_uuid()"
-        VARCHAR name "NOT NULL"
-        VARCHAR email "UNIQUE, NOT NULL"
-        VARCHAR password_hash "NOT NULL"
-        VARCHAR role "CHECK in ('admin', 'member')"
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
+        uuid id PK
+        string name
+        string email
+        string password_hash
+        string role
+        timestamptz created_at
+        timestamptz updated_at
     }
 
     PROJECTS {
-        UUID id PK "gen_random_uuid()"
-        VARCHAR name "NOT NULL"
-        TEXT description
-        UUID created_by FK "REFERENCES users(id) ON DELETE SET NULL"
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
+        uuid id PK
+        string name
+        string description
+        uuid created_by FK
+        timestamptz created_at
+        timestamptz updated_at
     }
 
     TASKS {
-        UUID id PK "gen_random_uuid()"
-        VARCHAR title "NOT NULL"
-        TEXT description
-        VARCHAR status "CHECK in ('To Do', 'In Progress', 'Completed')"
-        VARCHAR priority "CHECK in ('Low', 'Medium', 'High')"
-        DATE due_date
-        UUID project_id FK "REFERENCES projects(id) ON DELETE CASCADE"
-        UUID assignee_id FK "REFERENCES users(id) ON DELETE SET NULL"
-        UUID created_by FK "REFERENCES users(id) ON DELETE SET NULL"
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
+        uuid id PK
+        string title
+        string description
+        string status
+        string priority
+        date due_date
+        uuid project_id FK
+        uuid assignee_id FK
+        uuid created_by FK
+        timestamptz created_at
+        timestamptz updated_at
     }
 ```
 
