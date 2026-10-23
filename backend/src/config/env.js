@@ -13,6 +13,26 @@ if (!JWT_SECRET) {
   );
 }
 
+const isPlaceholder = JWT_SECRET.startsWith('replace_with') || JWT_SECRET.includes('replace_with');
+const isTooShort = JWT_SECRET.length < 32;
+
+if (process.env.NODE_ENV === 'production') {
+  if (isPlaceholder || isTooShort) {
+    throw new Error(
+      'FATAL CONFIGURATION ERROR: Insecure JWT_SECRET detected in production environment.\n' +
+      'Secret must not use the default placeholder and must be at least 32 characters.\n' +
+      'Generate one with: node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'hex\'))"'
+    );
+  }
+} else if (isPlaceholder || isTooShort) {
+  console.warn(
+    '\x1b[33m%s\x1b[0m',
+    '⚠️  [SECURITY WARNING] Insecure or placeholder JWT_SECRET detected in development.\n' +
+    '   Please generate a strong key (min 32 chars) for .env:\n' +
+    '   node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'hex\'))"'
+  );
+}
+
 module.exports = {
   PORT: parseInt(process.env.PORT, 10) || 5000,
   NODE_ENV: process.env.NODE_ENV || 'development',

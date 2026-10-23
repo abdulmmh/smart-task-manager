@@ -9,8 +9,12 @@ export default function Sidebar({ isOpen, onClose }) {
   useEffect(() => {
     let isMounted = true;
     client.get('/health')
-      .then(() => { if (isMounted) setIsDbConnected(true); })
-      .catch(() => { if (isMounted) setIsDbConnected(false); });
+      .then((res) => { 
+        if (isMounted) setIsDbConnected(res.data?.database === 'connected'); 
+      })
+      .catch(() => { 
+        if (isMounted) setIsDbConnected(false); 
+      });
     return () => { isMounted = false; };
   }, []);
 
@@ -77,7 +81,7 @@ export default function Sidebar({ isOpen, onClose }) {
             width: '8px',
             height: '8px',
             borderRadius: '50%',
-            backgroundColor: isDbConnected ? '#15803d' : '#b91c1c',
+            backgroundColor: isDbConnected ? 'var(--success)' : 'var(--danger)',
             display: 'inline-block'
           }} />
           <span>{isDbConnected ? 'PostgreSQL Connected' : 'PostgreSQL Disconnected'}</span>

@@ -6,6 +6,7 @@ const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const { query } = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
@@ -18,13 +19,24 @@ app.use(cors({
 
 app.use(express.json());
 
-// Health check endpoint for uptime monitoring and automated grading
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    service: 'Smart Task & Project Manager API',
-    timestamp: new Date().toISOString(),
-  });
+// Health check endpoint with real PostgreSQL connectivity verification
+app.get('/api/health', async (req, res) => {
+  try {
+    await query('SELECT 1 AS alive');
+    res.json({
+      status: 'OK',
+      database: 'connected',
+      service: 'Smart Task & Project Manager API',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'Degraded',
+      database: 'disconnected',
+      error: 'PostgreSQL database connectivity check failed.',
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 // API Routes
