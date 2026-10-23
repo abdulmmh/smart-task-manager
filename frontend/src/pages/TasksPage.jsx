@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { tasksApi } from '../api/tasksApi';
 import { projectsApi } from '../api/projectsApi';
@@ -7,14 +7,9 @@ import { useAuth } from '../context/AuthContext';
 import { 
   Plus, 
   Search, 
-  Filter, 
   Edit3, 
   Trash2, 
   AlertTriangle,
-  RefreshCw,
-  CheckCircle,
-  Calendar,
-  User,
   X
 } from 'lucide-react';
 import Badge from '../components/common/Badge';
@@ -32,11 +27,32 @@ export default function TasksPage() {
 
   // Filters State
   const [search, setSearch] = useState(searchParams.get('search') || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('search') || '');
   const [selectedProject, setSelectedProject] = useState(searchParams.get('projectId') || '');
   const [selectedStatus, setSelectedStatus] = useState(searchParams.get('status') || '');
   const [selectedPriority, setSelectedPriority] = useState(searchParams.get('priority') || '');
   const [selectedAssignee, setSelectedAssignee] = useState(searchParams.get('assigneeId') || '');
   const [isOverdueOnly, setIsOverdueOnly] = useState(searchParams.get('overdue') === 'true');
+
+  // Debounce search input by 300ms
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  // Synchronize active filters with URL query parameters
+  useEffect(() => {
+    const params = {};
+    if (debouncedSearch.trim()) params.search = debouncedSearch.trim();
+    if (selectedProject) params.projectId = selectedProject;
+    if (selectedStatus) params.status = selectedStatus;
+    if (selectedPriority) params.priority = selectedPriority;
+    if (selectedAssignee) params.assigneeId = selectedAssignee;
+    if (isOverdueOnly) params.overdue = 'true';
+    setSearchParams(params, { replace: true });
+  }, [debouncedSearch, selectedProject, selectedStatus, selectedPriority, selectedAssignee, isOverdueOnly, setSearchParams]);
 
   // Task Modal State (Admin create/edit or Member status update)
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -57,25 +73,12 @@ export default function TasksPage() {
   // Delete State
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const fetchDropdownData = async () => {
-    try {
-      const [projRes, usersRes] = await Promise.all([
-        projectsApi.getProjects(),
-        authApi.getUsers(),
-      ]);
-      setProjects(projRes.projects);
-      setUsers(usersRes.users);
-    } catch (err) {
-      console.error('Error fetching filter lists:', err);
-    }
-  };
-
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     setIsLoading(true);
     setError('');
     try {
       const filters = {
-        search: search.trim() || undefined,
+        search: debouncedSearch.trim() || undefined,
         projectId: selectedProject || undefined,
         status: selectedStatus || undefined,
         priority: selectedPriority || undefined,
@@ -90,15 +93,50 @@ export default function TasksPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [debouncedSearch, selectedProject, selectedStatus, selectedPriority, selectedAssignee, isOverdueOnly]);
 
   useEffect(() => {
-    fetchDropdownData();
+    let isCurrent = true;
+    Promise.all([projectsApi.getProjects(), authApi.getUsers()])
+      .then(([projRes, usersRes]) => {
+        if (isCurrent) {
+          setProjects(projRes.projects);
+          setUsers(usersRes.users);
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching filter lists:', err);
+      });
+    return () => { isCurrent = false; };
   }, []);
 
   useEffect(() => {
-    fetchTasks();
-  }, [search, selectedProject, selectedStatus, selectedPriority, selectedAssignee, isOverdueOnly]);
+    let isCurrent = true;
+    const filters = {
+      search: debouncedSearch.trim() || undefined,
+      projectId: selectedProject || undefined,
+      status: selectedStatus || undefined,
+      priority: selectedPriority || undefined,
+      assigneeId: selectedAssignee || undefined,
+      overdue: isOverdueOnly || undefined,
+    };
+
+    tasksApi.getTasks(filters)
+      .then((data) => {
+        if (isCurrent) {
+          setTasks(data.tasks);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isCurrent) {
+          setError(err.response?.data?.error || 'Failed to load tasks.');
+          setIsLoading(false);
+        }
+      });
+
+    return () => { isCurrent = false; };
+  }, [debouncedSearch, selectedProject, selectedStatus, selectedPriority, selectedAssignee, isOverdueOnly]);
 
   const handleOpenCreateModal = () => {
     setModalMode('create');
@@ -200,6 +238,7 @@ export default function TasksPage() {
 
   const resetFilters = () => {
     setSearch('');
+    setDebouncedSearch('');
     setSelectedProject('');
     setSelectedStatus('');
     setSelectedPriority('');
@@ -353,7 +392,23 @@ export default function TasksPage() {
             </tr>
           </thead>
           <tbody>
-            {tasks.length === 0 ? (
+            {isLoading ? (
+              <tr>
+                <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                    <div style={{
+                      width: '18px',
+                      height: '18px',
+                      border: '2px solid #cbd5e1',
+                      borderTopColor: '#0a1931',
+                      borderRadius: '50%',
+                      animation: 'spin 0.8s linear infinite'
+                    }} />
+                    <span style={{ fontSize: '13px', fontWeight: '500' }}>Filtering tasks...</span>
+                  </div>
+                </td>
+              </tr>
+            ) : tasks.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
                   No tasks found matching your filter criteria.

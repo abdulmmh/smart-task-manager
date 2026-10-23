@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { dashboardApi } from '../api/dashboardApi';
 import { useAuth } from '../context/AuthContext';
@@ -19,8 +19,8 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const fetchDashboardData = async () => {
-    setIsLoading(true);
+  const fetchDashboardData = useCallback(async (showSpinner = false) => {
+    if (showSpinner) setIsLoading(true);
     setError('');
     try {
       const response = await dashboardApi.getMetrics();
@@ -30,10 +30,24 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchDashboardData();
+    let isMounted = true;
+    dashboardApi.getMetrics()
+      .then((res) => {
+        if (isMounted) {
+          setData(res);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          setError(err.response?.data?.error || 'Failed to fetch dashboard metrics.');
+          setIsLoading(false);
+        }
+      });
+    return () => { isMounted = false; };
   }, []);
 
   if (isLoading) {

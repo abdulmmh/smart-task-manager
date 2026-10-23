@@ -1,9 +1,8 @@
-import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Badge from './Badge';
-import { LogOut } from 'lucide-react';
+import { LogOut, Menu } from 'lucide-react';
 
-export default function Navbar({ title = 'Overview' }) {
+export default function Navbar({ title = 'Overview', onToggleSidebar }) {
   const { user, logout } = useAuth();
 
   const getInitials = (name) => {
@@ -19,6 +18,14 @@ export default function Navbar({ title = 'Overview' }) {
   return (
     <header className="topbar">
       <div className="topbar-left">
+        <button 
+          type="button" 
+          className="hamburger-btn" 
+          onClick={onToggleSidebar}
+          aria-label="Toggle navigation menu"
+        >
+          <Menu size={20} />
+        </button>
         <h2 className="topbar-title">
           {title}
         </h2>

@@ -1,10 +1,14 @@
-import React from 'react';
+import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 
 export default function Layout() {
   const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
+  const closeSidebar = () => setIsSidebarOpen(false);
 
   const getPageTitle = (pathname) => {
     if (pathname.startsWith('/dashboard')) return 'Executive Dashboard & Metrics';
@@ -15,9 +19,9 @@ export default function Layout() {
 
   return (
     <div className="app-container">
-      <Sidebar />
+      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
       <div className="main-wrapper">
-        <Navbar title={getPageTitle(location.pathname)} />
+        <Navbar title={getPageTitle(location.pathname)} onToggleSidebar={toggleSidebar} />
         <main className="content-area">
           <Outlet />
         </main>

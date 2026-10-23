@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { projectsApi } from '../api/projectsApi';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -31,8 +31,7 @@ export default function ProjectsPage() {
   // Delete State
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const fetchProjects = async () => {
-    setIsLoading(true);
+  const fetchProjects = useCallback(async () => {
     setError('');
     try {
       const data = await projectsApi.getProjects();
@@ -42,10 +41,24 @@ export default function ProjectsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchProjects();
+    let isMounted = true;
+    projectsApi.getProjects()
+      .then((data) => {
+        if (isMounted) {
+          setProjects(data.projects);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          setError(err.response?.data?.error || 'Failed to load projects.');
+          setIsLoading(false);
+        }
+      });
+    return () => { isMounted = false; };
   }, []);
 
   const handleOpenCreateModal = () => {

@@ -692,6 +692,19 @@ tr:hover td {
   padding-left: 38px;
 }
 
+/* ================= Mobile & Responsive Navigation ================= */
+.hamburger-btn {
+  display: none;
+}
+
+.sidebar-close-btn {
+  display: none;
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
 /* ================= Responsive Rules ================= */
 @media (max-width: 1024px) {
   .user-email {
@@ -706,13 +719,82 @@ tr:hover td {
 }
 
 @media (max-width: 768px) {
-  .sidebar {
-    width: 220px;
+  .hamburger-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--navy-dark);
+    padding: 6px;
+    cursor: pointer;
+    margin-right: 8px;
+    transition: background-color 0.15s ease;
   }
+  .hamburger-btn:hover {
+    background-color: var(--bg-subtle);
+  }
+
+  .sidebar-close-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 6px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+  }
+  .sidebar-close-btn:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-subtle);
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10, 25, 49, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 45;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    height: 100vh;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 24px rgba(10, 25, 49, 0.25);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
   .user-badge {
     padding: 4px 8px;
   }
+
   .metrics-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-select {
+    width: 100%;
   }
 }
