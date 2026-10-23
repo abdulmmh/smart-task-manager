@@ -1,10 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
-const path = require('path');
-
-// Ensure environment variables are loaded
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+const { CLIENT_URL } = require('./config/env');
 
 const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
@@ -16,7 +12,7 @@ const app = express();
 
 // Global Middlewares
 app.use(cors({
-  origin: process.env.CLIENT_URL || '*',
+  origin: CLIENT_URL,
   credentials: true,
 }));
 

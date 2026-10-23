@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { query } = require('../config/db');
+const { JWT_SECRET } = require('../config/env');
 
 /**
  * Verifies JWT token from Authorization header and attaches user to request
@@ -12,7 +13,7 @@ async function authenticate(req, res, next) {
     }
 
     const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'brightmind_super_secure_jwt_secret_key_2026');
+    const decoded = jwt.verify(token, JWT_SECRET);
 
     // Fetch fresh user record from DB to verify user still exists and role hasn't changed
     const result = await query(

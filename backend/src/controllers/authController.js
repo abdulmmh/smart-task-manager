@@ -1,9 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { query } = require('../config/db');
-
-const JWT_SECRET = process.env.JWT_SECRET || 'brightmind_super_secure_jwt_secret_key_2026';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config/env');
 
 /**
  * Register a new user (defaults to role: 'member')
