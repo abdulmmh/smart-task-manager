@@ -24,10 +24,10 @@ Comprehensive technical reference for the Smart Task & Project Management REST A
    - [List & Filter Tasks](#31-list--filter-tasks)
    - [Get Task by ID](#32-get-task-by-id)
    - [Create New Task](#33-create-new-task)
-   - [Update Task](#34-update-task)
+   - [Update Task](#34-update-task-rbac-aware)
    - [Delete Task](#35-delete-task)
 4. [Dashboard & Metrics Endpoints](#4-dashboard--metrics-endpoints)
-   - [Get System Metrics & Overdue Alerts](#41-get-system-metrics--overdue-alerts)
+   - [Get Executive Dashboard Metrics](#41-get-executive-dashboard-metrics)
 5. [Standard Error Responses](#5-standard-error-responses)
 6. [Ready-to-Run cURL Commands](#6-ready-to-run-curl-commands)
 
@@ -36,7 +36,7 @@ Comprehensive technical reference for the Smart Task & Project Management REST A
 ## 1. Authentication Endpoints
 
 ### 1.1 Register New User
-Creates a new user account with hashed password (`bcrypt`).
+Creates a new user account with hashed password (`bcryptjs`, 10 rounds).
 
 - **Method**: `POST`
 - **Path**: `/auth/register`
@@ -46,35 +46,34 @@ Creates a new user account with hashed password (`bcrypt`).
 {
   "name": "Jane Developer",
   "email": "jane.dev@brightmind.com",
-  "password": "password123",
-  "role": "member"
+  "password": "password123"
 }
 ```
-*Validation Rules*:
-- `name`: 2-100 characters.
-- `email`: Valid RFC email format.
-- `password`: Minimum 6 characters.
-- `role`: Optional, defaults to `"member"`. Must be `"admin"` or `"member"`.
+*Validation & Security Rules*:
+- `name`: String, 1–100 characters (required).
+- `email`: Valid email format, maximum 255 characters (required, unique).
+- `password`: String, minimum 8 characters, maximum 128 characters (required).
+- *Privilege Escalation Protection*: Any `role` sent in registration payload is ignored; new accounts always default to `"member"`.
 
 - **Success Response** (`201 Created`):
 ```json
 {
-  "message": "User registered successfully",
+  "message": "User registered successfully.",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
     "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     "name": "Jane Developer",
     "email": "jane.dev@brightmind.com",
     "role": "member",
-    "created_at": "2026-10-23T00:00:00.000Z"
-  },
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    "created_at": "2026-10-23T10:00:00.000Z"
+  }
 }
 ```
 
 ---
 
 ### 1.2 User Login
-Authenticates user credentials and returns a signed JWT.
+Authenticates user credentials and returns a signed stateless JWT.
 
 - **Method**: `POST`
 - **Path**: `/auth/login`
@@ -90,35 +89,25 @@ Authenticates user credentials and returns a signed JWT.
 - **Success Response** (`200 OK`):
 ```json
 {
-  "message": "Login successful",
+  "message": "Login successful.",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
     "id": "11111111-1111-1111-1111-111111111111",
     "name": "Alex Turner",
     "email": "alex.admin@brightmind.com",
-    "role": "admin",
-    "created_at": "2026-10-23T00:00:00.000Z"
-  },
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-
-- **Error Response** (`401 Unauthorized`):
-```json
-{
-  "error": "Invalid email or password"
+    "role": "admin"
+  }
 }
 ```
 
 ---
 
 ### 1.3 Get Current User Profile
-Retrieves the profile of the authenticated user from the active JWT.
+Returns currently authenticated user session. Re-queries PostgreSQL to guarantee user still exists and role hasn't changed.
 
 - **Method**: `GET`
 - **Path**: `/auth/me`
-- **Access**: Authenticated (`admin` or `member`)
-- **Headers**: `Authorization: Bearer <token>`
-
+- **Access**: Authenticated
 - **Success Response** (`200 OK`):
 ```json
 {
@@ -126,8 +115,7 @@ Retrieves the profile of the authenticated user from the active JWT.
     "id": "11111111-1111-1111-1111-111111111111",
     "name": "Alex Turner",
     "email": "alex.admin@brightmind.com",
-    "role": "admin",
-    "created_at": "2026-10-23T00:00:00.000Z"
+    "role": "admin"
   }
 }
 ```
@@ -135,12 +123,11 @@ Retrieves the profile of the authenticated user from the active JWT.
 ---
 
 ### 1.4 List Team Members
-Retrieves all registered users for task assignment dropdowns.
+Returns all registered users for assignment dropdowns.
 
 - **Method**: `GET`
 - **Path**: `/auth/users`
-- **Access**: Authenticated (`admin` or `member`)
-
+- **Access**: Authenticated
 - **Success Response** (`200 OK`):
 ```json
 {
@@ -166,7 +153,7 @@ Retrieves all registered users for task assignment dropdowns.
 ## 2. Project Management Endpoints
 
 ### 2.1 List All Projects
-Retrieves all projects along with real-time calculated completion metrics.
+Retrieves all projects with dynamic task aggregations and completion percentages calculated in a single database round-trip.
 
 - **Method**: `GET`
 - **Path**: `/projects`
@@ -176,16 +163,18 @@ Retrieves all projects along with real-time calculated completion metrics.
 {
   "projects": [
     {
-      "id": "bbbbbbbb-1111-1111-1111-111111111111",
-      "name": "Mobile Application API v2",
-      "description": "Design and implement high-performance REST APIs with caching and rate limiting.",
-      "created_at": "2026-10-20T00:00:00.000Z",
-      "updated_at": "2026-10-20T00:00:00.000Z",
-      "total_tasks": "5",
-      "completed_tasks": "1",
-      "pending_tasks": "4",
-      "overdue_tasks": "0",
-      "completion_rate": 20
+      "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "name": "Customer Portal Redesign",
+      "description": "Revamp client-facing dashboard with modern UI, self-service billing, and telemetry.",
+      "created_by": "11111111-1111-1111-1111-111111111111",
+      "created_by_name": "Alex Turner",
+      "created_at": "2026-10-23T00:00:00.000Z",
+      "updated_at": "2026-10-23T00:00:00.000Z",
+      "total_tasks": 5,
+      "completed_tasks": 2,
+      "pending_tasks": 3,
+      "overdue_tasks": 1,
+      "progress_percentage": 40
     }
   ]
 }
@@ -194,7 +183,7 @@ Retrieves all projects along with real-time calculated completion metrics.
 ---
 
 ### 2.2 Get Project by ID
-Retrieves single project details along with its full list of associated tasks.
+Retrieves details for a single project along with its associated task list.
 
 - **Method**: `GET`
 - **Path**: `/projects/:id`
@@ -203,25 +192,31 @@ Retrieves single project details along with its full list of associated tasks.
 ```json
 {
   "project": {
-    "id": "bbbbbbbb-1111-1111-1111-111111111111",
-    "name": "Mobile Application API v2",
-    "description": "Design and implement high-performance REST APIs with caching and rate limiting.",
-    "total_tasks": "5",
-    "completed_tasks": "1",
-    "pending_tasks": "4",
-    "overdue_tasks": "0",
-    "completion_rate": 20,
-    "tasks": [
-      {
-        "id": "cccccccc-0001-0000-0000-000000000001",
-        "title": "Setup OAuth2 & JWT Refresh Token Rotation",
-        "status": "Completed",
-        "priority": "High",
-        "due_date": "2026-10-18",
-        "assignee_name": "John Smith"
-      }
-    ]
-  }
+    "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "name": "Customer Portal Redesign",
+    "description": "Revamp client-facing dashboard with modern UI, self-service billing, and telemetry.",
+    "created_by": "11111111-1111-1111-1111-111111111111",
+    "created_by_name": "Alex Turner",
+    "created_at": "2026-10-23T00:00:00.000Z",
+    "updated_at": "2026-10-23T00:00:00.000Z"
+  },
+  "tasks": [
+    {
+      "id": "10000000-0000-0000-0000-000000000001",
+      "title": "Design High-Fidelity Figma Mockups",
+      "description": "Create responsive mobile and desktop wireframes for customer analytics view.",
+      "status": "Completed",
+      "priority": "High",
+      "due_date": "2026-10-13",
+      "project_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "assignee_id": "66666666-6666-6666-6666-666666666666",
+      "assignee_name": "Emma Watson",
+      "assignee_email": "emma.ui@brightmind.com",
+      "created_by": "11111111-1111-1111-1111-111111111111",
+      "created_at": "2026-10-23T00:00:00.000Z",
+      "updated_at": "2026-10-23T00:00:00.000Z"
+    }
+  ]
 }
 ```
 
@@ -237,38 +232,32 @@ Creates a new project record.
 ```json
 {
   "name": "Internal Developer Portal",
-  "description": "Centralized documentation, service mesh catalog, and API mocking playground."
+  "description": "Centralized documentation, service catalog, and API mocking playground."
 }
 ```
 *Validation Rules*:
-- `name`: 2-150 characters (required).
-- `description`: Optional text.
+- `name`: String, 1–150 characters (required).
+- `description`: Optional string or `null`.
 
 - **Success Response** (`201 Created`):
 ```json
 {
-  "message": "Project created successfully",
+  "message": "Project created successfully.",
   "project": {
     "id": "9a8b7c6d-5e4f-3a2b-1c0d-e9f8a7b6c5d4",
     "name": "Internal Developer Portal",
-    "description": "Centralized documentation, service mesh catalog, and API mocking playground.",
-    "created_at": "2026-10-23T00:00:00.000Z",
-    "updated_at": "2026-10-23T00:00:00.000Z"
+    "description": "Centralized documentation, service catalog, and API mocking playground.",
+    "created_by": "11111111-1111-1111-1111-111111111111",
+    "created_at": "2026-10-23T10:00:00.000Z",
+    "updated_at": "2026-10-23T10:00:00.000Z"
   }
-}
-```
-
-- **Forbidden Response** (`403 Forbidden` if requested by a member):
-```json
-{
-  "error": "Access denied: Administrator privileges required"
 }
 ```
 
 ---
 
 ### 2.4 Update Project
-Updates project name or description.
+Updates project name or description. Passing `description: null` clears the description in PostgreSQL.
 
 - **Method**: `PUT`
 - **Path**: `/projects/:id`
@@ -277,19 +266,19 @@ Updates project name or description.
 ```json
 {
   "name": "Internal Developer Portal v2",
-  "description": "Updated project description with security enhancements."
+  "description": null
 }
 ```
 
 - **Success Response** (`200 OK`):
 ```json
 {
-  "message": "Project updated successfully",
+  "message": "Project updated successfully.",
   "project": {
     "id": "9a8b7c6d-5e4f-3a2b-1c0d-e9f8a7b6c5d4",
     "name": "Internal Developer Portal v2",
-    "description": "Updated project description with security enhancements.",
-    "updated_at": "2026-10-23T00:05:00.000Z"
+    "description": null,
+    "updated_at": "2026-10-23T10:05:00.000Z"
   }
 }
 ```
@@ -297,7 +286,7 @@ Updates project name or description.
 ---
 
 ### 2.5 Delete Project
-Permanently deletes a project. Due to foreign key `ON DELETE CASCADE`, all tasks linked to this project are also automatically deleted.
+Permanently deletes a project. Due to foreign key `ON DELETE CASCADE`, all tasks linked to this project are automatically deleted.
 
 - **Method**: `DELETE`
 - **Path**: `/projects/:id`
@@ -305,8 +294,8 @@ Permanently deletes a project. Due to foreign key `ON DELETE CASCADE`, all tasks
 - **Success Response** (`200 OK`):
 ```json
 {
-  "message": "Project and all associated tasks deleted successfully",
-  "deleted_project_id": "9a8b7c6d-5e4f-3a2b-1c0d-e9f8a7b6c5d4"
+  "message": "Project 'Internal Developer Portal v2' and all associated tasks deleted successfully.",
+  "deletedId": "9a8b7c6d-5e4f-3a2b-1c0d-e9f8a7b6c5d4"
 }
 ```
 
@@ -315,18 +304,18 @@ Permanently deletes a project. Due to foreign key `ON DELETE CASCADE`, all tasks
 ## 3. Task Management Endpoints
 
 ### 3.1 List & Filter Tasks
-Retrieves tasks with multi-field filtering, live text search, and overdue toggles.
+Retrieves tasks with multi-field server-side filtering, live text search, and overdue detection.
 
 - **Method**: `GET`
 - **Path**: `/tasks`
 - **Access**: Authenticated
 - **Query Parameters**:
   - `search` (string): Searches title and description (`ILIKE %search%`).
-  - `project_id` (UUID): Filters by specific project.
-  - `status` (string): Filter by `"To Do"`, `"In Progress"`, or `"Completed"`.
-  - `priority` (string): Filter by `"Low"`, `"Medium"`, or `"High"`.
-  - `assignee_id` (UUID): Filter by assigned team member.
-  - `overdue` (boolean): If `true`, returns tasks where `due_date < CURRENT_DATE` and `status != 'Completed'`.
+  - `projectId` or `project_id` (UUID): Filters by specific project.
+  - `status` (string): Filters by `"To Do"`, `"In Progress"`, or `"Completed"`.
+  - `priority` (string): Filters by `"Low"`, `"Medium"`, or `"High"`.
+  - `assigneeId` or `assignee_id` (UUID): Filters by assigned team member.
+  - `overdue` (boolean): If `'true'`, filters uncompleted tasks past deadline.
 
 - **Example Request**:
   `GET /api/tasks?status=In%20Progress&priority=High&overdue=true`
@@ -336,22 +325,25 @@ Retrieves tasks with multi-field filtering, live text search, and overdue toggle
 {
   "tasks": [
     {
-      "id": "cccccccc-0002-0000-0000-000000000002",
+      "id": "10000000-0000-0000-0000-000000000005",
       "title": "Audit Accessibility (WCAG 2.1 AA)",
       "description": "Review color contrast, keyboard navigation, and aria labels across portal.",
       "status": "In Progress",
       "priority": "High",
       "due_date": "2026-10-21",
-      "project_id": "bbbbbbbb-2222-2222-2222-222222222222",
+      "project_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
       "project_name": "Customer Portal Redesign",
       "assignee_id": "55555555-5555-5555-5555-555555555555",
       "assignee_name": "Michael Scott",
       "assignee_email": "michael.qa@brightmind.com",
-      "is_overdue": true,
-      "created_at": "2026-10-15T00:00:00.000Z",
-      "updated_at": "2026-10-15T00:00:00.000Z"
+      "created_by": "11111111-1111-1111-1111-111111111111",
+      "created_by_name": "Alex Turner",
+      "created_at": "2026-10-23T00:00:00.000Z",
+      "updated_at": "2026-10-23T00:00:00.000Z",
+      "is_overdue": true
     }
-  ]
+  ],
+  "totalCount": 1
 }
 ```
 
@@ -363,21 +355,25 @@ Retrieves details for a single task.
 - **Method**: `GET`
 - **Path**: `/tasks/:id`
 - **Access**: Authenticated
-
 - **Success Response** (`200 OK`):
 ```json
 {
   "task": {
-    "id": "cccccccc-0002-0000-0000-000000000002",
+    "id": "10000000-0000-0000-0000-000000000005",
     "title": "Audit Accessibility (WCAG 2.1 AA)",
     "description": "Review color contrast, keyboard navigation, and aria labels across portal.",
     "status": "In Progress",
     "priority": "High",
     "due_date": "2026-10-21",
-    "project_id": "bbbbbbbb-2222-2222-2222-222222222222",
+    "project_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     "project_name": "Customer Portal Redesign",
     "assignee_id": "55555555-5555-5555-5555-555555555555",
     "assignee_name": "Michael Scott",
+    "assignee_email": "michael.qa@brightmind.com",
+    "created_by": "11111111-1111-1111-1111-111111111111",
+    "created_by_name": "Alex Turner",
+    "created_at": "2026-10-23T00:00:00.000Z",
+    "updated_at": "2026-10-23T00:00:00.000Z",
     "is_overdue": true
   }
 }
@@ -394,36 +390,39 @@ Creates a new task linked to a project and an optional assignee.
 - **Request Body**:
 ```json
 {
-  "title": "Implement Redis Session Cache",
-  "description": "Reduce PostgreSQL load by caching authenticated JWT session blacklists in Redis.",
+  "title": "Implement Redis Cache Layer",
+  "description": "Cache session token revocation checks in memory.",
   "status": "To Do",
   "priority": "High",
-  "due_date": "2026-10-30",
-  "project_id": "bbbbbbbb-1111-1111-1111-111111111111",
+  "due_date": "2026-11-15",
+  "project_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
   "assignee_id": "33333333-3333-3333-3333-333333333333"
 }
 ```
 *Validation Rules*:
-- `title`: 2-200 characters (required).
+- `title`: String, 1–200 characters (required).
 - `project_id`: Valid UUID referencing an existing project (required).
-- `status`: Optional, defaults to `"To Do"`. Must be `"To Do"`, `"In Progress"`, or `"Completed"`.
-- `priority`: Optional, defaults to `"Medium"`. Must be `"Low"`, `"Medium"`, or `"High"`.
-- `due_date`: Optional valid `YYYY-MM-DD` date format.
-- `assignee_id`: Optional UUID referencing a valid user.
+- `status`: Optional, defaults to `"To Do"`. Allowed: `"To Do"`, `"In Progress"`, `"Completed"`.
+- `priority`: Optional, defaults to `"Medium"`. Allowed: `"Low"`, `"Medium"`, `"High"`.
+- `due_date`: Optional valid `YYYY-MM-DD` date string or `null`. Invalid calendar dates (e.g. `2026-02-31`) return 400.
+- `assignee_id`: Optional UUID referencing a valid user or `null`.
 
 - **Success Response** (`201 Created`):
 ```json
 {
-  "message": "Task created successfully",
+  "message": "Task created successfully.",
   "task": {
     "id": "e2f3a4b5-c6d7-8e9f-0a1b-2c3d4e5f6a7b",
-    "title": "Implement Redis Session Cache",
+    "title": "Implement Redis Cache Layer",
+    "description": "Cache session token revocation checks in memory.",
     "status": "To Do",
     "priority": "High",
-    "due_date": "2026-10-30",
-    "project_id": "bbbbbbbb-1111-1111-1111-111111111111",
+    "due_date": "2026-11-15T00:00:00.000Z",
+    "project_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     "assignee_id": "33333333-3333-3333-3333-333333333333",
-    "created_at": "2026-10-23T00:00:00.000Z"
+    "created_by": "11111111-1111-1111-1111-111111111111",
+    "created_at": "2026-10-23T10:15:00.000Z",
+    "updated_at": "2026-10-23T10:15:00.000Z"
   }
 }
 ```
@@ -431,45 +430,51 @@ Creates a new task linked to a project and an optional assignee.
 ---
 
 ### 3.4 Update Task (RBAC Aware)
-Modifies task fields. Includes role-based operational permissions:
-- **`admin`**: Can edit all fields (title, description, project, assignee, priority, status, due_date).
-- **`member`**: Can **only** update the `status` field. Attempting to change title, priority, project, or assignee returns a 403 Forbidden error.
+Modifies task fields with role-based operational permissions:
+- **`admin`**: Can update any field (`title`, `description`, `status`, `priority`, `due_date`, `project_id`, `assignee_id`). Sending `due_date: null` or `description: null` clears the field in PostgreSQL.
+- **`member`**: Can **only** update the `status` of tasks assigned to them. Attempting to send other fields (`title`, `priority`, etc.) returns `403 Forbidden`. Attempting to modify tasks assigned to another team member returns `403 Forbidden`.
 
 - **Method**: `PUT`
 - **Path**: `/tasks/:id`
-- **Access**: Admin (All Fields) or Member (Status Only)
+- **Access**: Admin (All Fields) or Member (Status Only on Assigned Tasks)
 
-**Example A: Member Updating Task Status**:
+**Example A: Member Updating Status on Assigned Task**:
 ```json
 {
   "status": "Completed"
 }
 ```
 
-**Example B: Admin Full Task Update**:
+**Example B: Admin Clearing Due Date and Description**:
 ```json
 {
-  "title": "Implement Redis Session Cache & Cluster Failover",
-  "description": "Expanded scope to include sentinel clustering.",
-  "status": "In Progress",
-  "priority": "High",
-  "due_date": "2026-11-05",
-  "assignee_id": "33333333-3333-3333-3333-333333333333"
+  "due_date": null,
+  "description": null
 }
 ```
 
 - **Success Response** (`200 OK`):
 ```json
 {
-  "message": "Task updated successfully",
+  "message": "Task updated successfully.",
   "task": {
     "id": "e2f3a4b5-c6d7-8e9f-0a1b-2c3d4e5f6a7b",
-    "title": "Implement Redis Session Cache & Cluster Failover",
-    "status": "In Progress",
+    "title": "Implement Redis Cache Layer",
+    "description": null,
+    "status": "Completed",
     "priority": "High",
-    "due_date": "2026-11-05",
-    "updated_at": "2026-10-23T00:10:00.000Z"
+    "due_date": null,
+    "project_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "assignee_id": "33333333-3333-3333-3333-333333333333",
+    "updated_at": "2026-10-23T10:20:00.000Z"
   }
+}
+```
+
+- **Forbidden Response** (`403 Forbidden` if a member attempts to send non-status fields):
+```json
+{
+  "error": "Access denied. Team members are only permitted to update task status."
 }
 ```
 
@@ -484,8 +489,8 @@ Permanently deletes a task record.
 - **Success Response** (`200 OK`):
 ```json
 {
-  "message": "Task deleted successfully",
-  "deleted_task_id": "e2f3a4b5-c6d7-8e9f-0a1b-2c3d4e5f6a7b"
+  "message": "Task 'Implement Redis Cache Layer' deleted successfully.",
+  "deletedId": "e2f3a4b5-c6d7-8e9f-0a1b-2c3d4e5f6a7b"
 }
 ```
 
@@ -493,13 +498,12 @@ Permanently deletes a task record.
 
 ## 4. Dashboard & Metrics Endpoints
 
-### 4.1 Get System Metrics & Overdue Alerts
-Executes a single-query SQL aggregation returning all high-level KPIs and actionable alerts with zero N+1 overhead.
+### 4.1 Get Executive Dashboard Metrics
+Executes single-pass SQL aggregations returning all high-level KPIs, overdue alerts, and project progress distributions with zero N+1 overhead.
 
 - **Method**: `GET`
-- **Path**: `/dashboard/metrics`
+- **Path**: `/dashboard`
 - **Access**: Authenticated
-
 - **Success Response** (`200 OK`):
 ```json
 {
@@ -509,26 +513,26 @@ Executes a single-query SQL aggregation returning all high-level KPIs and action
     "completed_tasks": 4,
     "pending_tasks": 10,
     "overdue_tasks": 3,
+    "high_priority_pending": 4,
     "completion_rate": 29
   },
   "overdueAlerts": [
     {
-      "id": "cccccccc-0002-0000-0000-000000000002",
+      "id": "10000000-0000-0000-0000-000000000005",
       "title": "Audit Accessibility (WCAG 2.1 AA)",
-      "due_date": "2026-10-21",
       "priority": "High",
-      "status": "In Progress",
+      "due_date": "2026-10-21",
       "project_name": "Customer Portal Redesign",
       "assignee_name": "Michael Scott"
     }
   ],
   "projectSummaries": [
     {
-      "id": "bbbbbbbb-1111-1111-1111-111111111111",
-      "name": "Mobile Application API v2",
-      "total_tasks": "5",
-      "completed_tasks": "1",
-      "completion_rate": 20
+      "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      "name": "Payment Gateway Integration",
+      "total_tasks": 4,
+      "completed_tasks": 1,
+      "progress": 25
     }
   ]
 }
@@ -538,34 +542,24 @@ Executes a single-query SQL aggregation returning all high-level KPIs and action
 
 ## 5. Standard Error Responses
 
-All error responses return consistent JSON structures with clear diagnostic messages:
+All error responses return consistent, predictable JSON structures:
 
 | HTTP Status | Reason | Example Response Body |
 |---|---|---|
-| `400 Bad Request` | Validation failure (invalid email, missing title, invalid UUID) | `{"error": "Title must be between 2 and 200 characters"}` |
-| `401 Unauthorized` | Missing, malformed, or expired JWT | `{"error": "Authentication token missing or invalid"}` |
-| `403 Forbidden` | Insufficient role privileges | `{"error": "Access denied: Administrator privileges required"}` |
-| `404 Not Found` | Entity does not exist | `{"error": "Project not found"}` |
-| `409 Conflict` | Unique constraint violation (e.g., duplicate email) | `{"error": "A user with this email already exists"}` |
-| `500 Internal Error`| Unhandled database or server exception | `{"error": "Internal server error"}` |
+| `400 Bad Request` | Validation failure (invalid date, overlong string, malformed UUID) | `{"error": "Invalid due_date. Must be a valid calendar date in YYYY-MM-DD format."}` |
+| `401 Unauthorized` | Missing, malformed, or expired JWT | `{"error": "Authentication required. No token provided."}` |
+| `403 Forbidden` | Insufficient role privileges | `{"error": "Access denied. Administrator privileges required for this action."}` |
+| `404 Not Found` | Target record or route does not exist | `{"error": "Task not found."}` |
+| `409 Conflict` | Unique constraint violation (e.g. duplicate email) | `{"error": "An account with this email address already exists."}` |
+| `500 Internal Error`| Unhandled database or server exception (sanitized) | `{"error": "Internal server error. Please try again later."}` |
 
 ---
 
 ## 6. Ready-to-Run cURL Commands
 
-These commands can be directly executed in PowerShell or Bash to demonstrate the API during technical review:
+These commands can be directly executed against a running backend (`http://localhost:5000`):
 
 ### Step 1: Login as Admin and Capture Token
-```bash
-# Windows PowerShell
-$LOGIN_RES = Invoke-RestMethod -Uri "http://localhost:5000/api/auth/login" `
-  -Method POST `
-  -Headers @{"Content-Type"="application/json"} `
-  -Body '{"email":"alex.admin@brightmind.com","password":"password123"}'
-$TOKEN = $LOGIN_RES.token
-Write-Host "Admin JWT Token:" $TOKEN
-```
-
 ```bash
 # Standard Bash / cURL
 TOKEN=$(curl -s -X POST http://localhost:5000/api/auth/login \
@@ -574,13 +568,23 @@ TOKEN=$(curl -s -X POST http://localhost:5000/api/auth/login \
 echo "Admin Token: $TOKEN"
 ```
 
+```powershell
+# Windows PowerShell
+$res = Invoke-RestMethod -Uri "http://localhost:5000/api/auth/login" `
+  -Method POST `
+  -Headers @{"Content-Type"="application/json"} `
+  -Body '{"email":"alex.admin@brightmind.com","password":"password123"}'
+$TOKEN = $res.token
+Write-Host "Admin Token:" $TOKEN
+```
+
 ### Step 2: Fetch Executive Dashboard Metrics
 ```bash
-curl -X GET http://localhost:5000/api/dashboard/metrics \
+curl -X GET http://localhost:5000/api/dashboard \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-### Step 3: Fetch Overdue Tasks Only
+### Step 3: Fetch Filtered Tasks (Overdue Only)
 ```bash
 curl -X GET "http://localhost:5000/api/tasks?overdue=true" \
   -H "Authorization: Bearer $TOKEN"
@@ -592,14 +596,14 @@ curl -X POST http://localhost:5000/api/projects \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Live Review Demonstration Project",
-    "description": "Created dynamically during technical interview walkthrough."
+    "name": "Live Assessment Demonstration Project",
+    "description": "Created dynamically during technical interview review."
   }'
 ```
 
 ### Step 5: Verify Cascading Deletion
 ```bash
-# Deleting a project will automatically cascade and delete its associated tasks:
+# Deleting a project automatically cascades to delete all child tasks
 curl -X DELETE "http://localhost:5000/api/projects/<PROJECT_ID>" \
   -H "Authorization: Bearer $TOKEN"
 ```
