@@ -55,6 +55,13 @@ function errorHandler(err, req, res, next) {
     });
   }
 
+  // PostgreSQL Not-Null constraint violation (attempting to set a NOT NULL column to NULL)
+  if (err.code === '23502') {
+    return res.status(400).json({
+      error: `A required field cannot be null (database not-null constraint violation on column: ${err.column || 'field'}).`
+    });
+  }
+
   // Operational client errors with explicit statusCode (e.g., 400, 401, 403, 404)
   if (err.statusCode && err.statusCode < 500) {
     return res.status(err.statusCode).json({ error: err.message });

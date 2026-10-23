@@ -51,11 +51,12 @@ after(async () => {
 });
 
 describe('1. Health Check & Core Infrastructure', () => {
-  test('GET /health returns 200 OK and service status', async () => {
+  test('GET /health returns 200 OK and database connectivity', async () => {
     const res = await fetch(`${baseUrl}/health`);
     assert.strictEqual(res.status, 200);
     const body = await res.json();
     assert.strictEqual(body.status, 'OK');
+    assert.strictEqual(body.database, 'connected');
   });
 
   test('Undefined endpoint returns 404 with structured error', async () => {
@@ -187,6 +188,34 @@ describe('3. Strict Input Validation & Edge-Case Handling', () => {
     });
     assert.strictEqual(res.status, 400);
   });
+
+  test('Explicit null status on update returns 400 Bad Request', async () => {
+    const res = await fetch(`${baseUrl}/tasks/10000000-0000-0000-0000-000000000001`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify({ status: null }),
+    });
+    assert.strictEqual(res.status, 400);
+    const body = await res.json();
+    assert.ok(body.error.toLowerCase().includes('status'));
+  });
+
+  test('Explicit null priority on update returns 400 Bad Request', async () => {
+    const res = await fetch(`${baseUrl}/tasks/10000000-0000-0000-0000-000000000001`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify({ priority: null }),
+    });
+    assert.strictEqual(res.status, 400);
+    const body = await res.json();
+    assert.ok(body.error.toLowerCase().includes('priority'));
+  });
 });
 
 describe('4. Role-Based Access Control (RBAC) Enforcement', () => {
@@ -198,6 +227,18 @@ describe('4. Role-Based Access Control (RBAC) Enforcement', () => {
         Authorization: `Bearer ${memberToken}`,
       },
       body: JSON.stringify({ name: 'Unauthorized Project' }),
+    });
+    assert.strictEqual(res.status, 403);
+  });
+
+  test('Member CANNOT update a project (403 Forbidden)', async () => {
+    const res = await fetch(`${baseUrl}/projects/11111111-1111-1111-1111-111111111111`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${memberToken}`,
+      },
+      body: JSON.stringify({ name: 'Member Renamed Project' }),
     });
     assert.strictEqual(res.status, 403);
   });
@@ -346,6 +387,29 @@ describe('5. CRUD Operations & Clearing Fields to Null', () => {
     const dbCheck = await query('SELECT due_date, description FROM tasks WHERE id = $1', [testTaskId]);
     assert.strictEqual(dbCheck.rows[0].due_date, null, 'DB record due_date must be null');
     assert.strictEqual(dbCheck.rows[0].description, null, 'DB record description must be null');
+  });
+
+  test('Admin updates project name and description', async () => {
+    const updateRes = await fetch(`${baseUrl}/projects/${testProjectId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify({
+        name: 'Renamed Project by Admin',
+        description: 'Updated Project Scope & Details',
+      }),
+    });
+    assert.strictEqual(updateRes.status, 200);
+    const updateBody = await updateRes.json();
+    assert.strictEqual(updateBody.project.name, 'Renamed Project by Admin');
+    assert.strictEqual(updateBody.project.description, 'Updated Project Scope & Details');
+
+    // Verify directly in DB
+    const dbCheck = await query('SELECT name, description FROM projects WHERE id = $1', [testProjectId]);
+    assert.strictEqual(dbCheck.rows[0].name, 'Renamed Project by Admin');
+    assert.strictEqual(dbCheck.rows[0].description, 'Updated Project Scope & Details');
   });
 
   test('Cascading deletion: deleting project removes associated tasks', async () => {

@@ -121,20 +121,20 @@ function validateTask(req, res, next) {
     }
   }
 
-  // Validate status if supplied
-  if (status !== undefined && status !== null) {
-    if (!ALLOWED_STATUSES.includes(status)) {
+  // Validate status if supplied (cannot be null or undefined if the key is present)
+  if ('status' in req.body) {
+    if (status === null || status === undefined || !ALLOWED_STATUSES.includes(status)) {
       return res.status(400).json({
-        error: `Invalid status. Allowed values: ${ALLOWED_STATUSES.join(', ')}`
+        error: `Invalid status. Status cannot be null and must be one of: ${ALLOWED_STATUSES.join(', ')}`
       });
     }
   }
 
-  // Validate priority if supplied
-  if (priority !== undefined && priority !== null) {
-    if (!ALLOWED_PRIORITIES.includes(priority)) {
+  // Validate priority if supplied (cannot be null or undefined if the key is present)
+  if ('priority' in req.body) {
+    if (priority === null || priority === undefined || !ALLOWED_PRIORITIES.includes(priority)) {
       return res.status(400).json({
-        error: `Invalid priority. Allowed values: ${ALLOWED_PRIORITIES.join(', ')}`
+        error: `Invalid priority. Priority cannot be null and must be one of: ${ALLOWED_PRIORITIES.join(', ')}`
       });
     }
   }

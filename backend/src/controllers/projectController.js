@@ -101,6 +101,7 @@ async function createProject(req, res, next) {
 async function updateProject(req, res, next) {
   try {
     const { id } = req.params;
+    const { name, description } = req.body;
     const hasName = 'name' in req.body;
     const hasDesc = 'description' in req.body;
 
