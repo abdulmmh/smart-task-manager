@@ -86,14 +86,14 @@ export default function DashboardPage() {
         background: '#ffffff',
         padding: '20px 24px',
         borderRadius: '8px',
-        border: '1px solid #e4e4e7',
+        border: '1px solid var(--border-subtle)',
         boxShadow: 'var(--shadow-xs)'
       }}>
         <div>
-          <h1 style={{ fontSize: '20px', fontWeight: '700', color: '#09090b', letterSpacing: '-0.3px' }}>
+          <h1 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--navy-dark)', letterSpacing: '-0.3px' }}>
             Welcome back, {user?.name}
           </h1>
-          <p style={{ fontSize: '13.5px', color: '#52525b', marginTop: '2px' }}>
+          <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
             Here is your live team velocity, project health, and deadline tracking overview.
           </p>
         </div>
@@ -120,7 +120,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="metric-value">{metrics.total_projects}</div>
-          <span style={{ fontSize: '12px', color: '#71717a', marginTop: '6px' }}>Active portfolios</span>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>Active portfolios</span>
         </div>
 
         {/* Metric 2: Total Tasks */}
@@ -132,21 +132,21 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="metric-value">{metrics.total_tasks}</div>
-          <span style={{ fontSize: '12px', color: '#71717a', marginTop: '6px' }}>Across all initiatives</span>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>Across all initiatives</span>
         </div>
 
         {/* Metric 3: Completed Tasks */}
         <div className="metric-card">
           <div className="metric-header">
             <span className="metric-label">Completed</span>
-            <div className="metric-icon-box" style={{ color: '#15803d' }}>
+            <div className="metric-icon-box" style={{ color: 'var(--success)' }}>
               <CheckCircle2 size={15} />
             </div>
           </div>
           <div className="metric-value">
             {metrics.completed_tasks}
           </div>
-          <span style={{ fontSize: '12px', color: '#15803d', marginTop: '6px', fontWeight: '500' }}>
+          <span style={{ fontSize: '12px', color: 'var(--success)', marginTop: '6px', fontWeight: '500' }}>
             {metrics.completion_rate}% completion rate
           </span>
         </div>
@@ -155,32 +155,32 @@ export default function DashboardPage() {
         <div className="metric-card">
           <div className="metric-header">
             <span className="metric-label">In Flight</span>
-            <div className="metric-icon-box" style={{ color: '#b45309' }}>
+            <div className="metric-icon-box" style={{ color: 'var(--info)' }}>
               <Clock size={15} />
             </div>
           </div>
           <div className="metric-value">
             {metrics.pending_tasks}
           </div>
-          <span style={{ fontSize: '12px', color: '#71717a', marginTop: '6px' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>
             To Do & In Progress
           </span>
         </div>
 
         {/* Metric 5: Overdue Tasks */}
-        <div className="metric-card" style={{ borderColor: metrics.overdue_tasks > 0 ? '#fecaca' : '#e4e4e7' }}>
+        <div className="metric-card" style={{ borderColor: metrics.overdue_tasks > 0 ? 'var(--danger-border)' : 'var(--border-subtle)' }}>
           <div className="metric-header">
-            <span className="metric-label" style={{ color: metrics.overdue_tasks > 0 ? '#b91c1c' : '#71717a' }}>
+            <span className="metric-label" style={{ color: metrics.overdue_tasks > 0 ? 'var(--danger)' : 'var(--text-muted)' }}>
               Overdue
             </span>
-            <div className="metric-icon-box" style={{ color: metrics.overdue_tasks > 0 ? '#b91c1c' : '#71717a' }}>
+            <div className="metric-icon-box" style={{ color: metrics.overdue_tasks > 0 ? 'var(--danger)' : 'var(--text-muted)' }}>
               <AlertCircle size={15} />
             </div>
           </div>
-          <div className="metric-value" style={{ color: metrics.overdue_tasks > 0 ? '#b91c1c' : '#09090b' }}>
+          <div className="metric-value" style={{ color: metrics.overdue_tasks > 0 ? 'var(--danger)' : 'var(--navy-dark)' }}>
             {metrics.overdue_tasks}
           </div>
-          <span style={{ fontSize: '12px', color: metrics.overdue_tasks > 0 ? '#b91c1c' : '#71717a', marginTop: '6px', fontWeight: '500' }}>
+          <span style={{ fontSize: '12px', color: metrics.overdue_tasks > 0 ? 'var(--danger)' : 'var(--text-muted)', marginTop: '6px', fontWeight: '500' }}>
             {metrics.overdue_tasks > 0 ? 'Requires attention' : 'All targets on schedule'}
           </span>
         </div>
@@ -188,18 +188,18 @@ export default function DashboardPage() {
 
       {/* Overdue Task Notification Banner (Bonus Criterion) */}
       {overdueAlerts && overdueAlerts.length > 0 && (
-        <div className="card" style={{ borderColor: '#fecaca', backgroundColor: '#fffafa' }}>
+        <div className="card" style={{ borderColor: 'var(--danger-border)', backgroundColor: '#fffafa' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <AlertCircle size={16} color="#b91c1c" />
+              <AlertCircle size={16} color="var(--danger)" />
               <div>
-                <h3 style={{ fontSize: '14.5px', fontWeight: '700', color: '#991b1b' }}>
+                <h3 style={{ fontSize: '14.5px', fontWeight: '700', color: 'var(--danger)' }}>
                   Overdue Tasks Requiring Action ({metrics.overdue_tasks})
                 </h3>
               </div>
             </div>
 
-            <Link to="/tasks?overdue=true" className="btn btn-secondary btn-sm" style={{ color: '#991b1b', borderColor: '#fecaca' }}>
+            <Link to="/tasks?overdue=true" className="btn btn-secondary btn-sm" style={{ color: 'var(--danger)', borderColor: 'var(--danger-border)' }}>
               <span>View In Task Board</span>
               <ArrowRight size={13} />
             </Link>
@@ -219,9 +219,9 @@ export default function DashboardPage() {
               <tbody>
                 {overdueAlerts.map((task) => (
                   <tr key={task.id}>
-                    <td style={{ fontWeight: '600', color: '#09090b' }}>{task.title}</td>
-                    <td style={{ color: '#52525b' }}>{task.project_name}</td>
-                    <td>{task.assignee_name || <em style={{ color: '#a1a1aa' }}>Unassigned</em>}</td>
+                    <td style={{ fontWeight: '600', color: 'var(--navy-dark)' }}>{task.title}</td>
+                    <td style={{ color: 'var(--text-secondary)' }}>{task.project_name}</td>
+                    <td>{task.assignee_name || <em style={{ color: 'var(--text-muted)' }}>Unassigned</em>}</td>
                     <td>
                       <Badge isOverdue={true} value={task.due_date} />
                     </td>
@@ -241,7 +241,7 @@ export default function DashboardPage() {
         <div className="card-header">
           <div>
             <h3 className="card-title">Project Progress & Completion Velocity</h3>
-            <p style={{ fontSize: '13px', color: '#71717a', marginTop: '2px' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
               Real-time task resolution metrics aggregated across all active portfolios.
             </p>
           </div>

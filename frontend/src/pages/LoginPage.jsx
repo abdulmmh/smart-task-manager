@@ -45,7 +45,7 @@ export default function LoginPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#f8fafc',
+      backgroundColor: 'var(--bg-app)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -56,8 +56,8 @@ export default function LoginPage() {
         maxWidth: '440px',
         backgroundColor: '#ffffff',
         borderRadius: '14px',
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03)',
+        border: '1px solid var(--border-subtle)',
+        boxShadow: 'var(--shadow-lg)',
         padding: '36px'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
@@ -65,21 +65,22 @@ export default function LoginPage() {
             width: '44px',
             height: '44px',
             borderRadius: '10px',
-            background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+            backgroundColor: 'var(--navy-dark)',
             color: '#ffffff',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontWeight: '800',
-            fontSize: '20px',
-            margin: '0 auto 12px'
+            fontSize: '18px',
+            margin: '0 auto 12px',
+            boxShadow: 'var(--shadow-sm)'
           }}>
             BM
           </div>
-          <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.4px' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--navy-dark)', letterSpacing: '-0.4px' }}>
             Bright Mind Ltd.
           </h1>
-          <p style={{ fontSize: '14px', color: '#64748b', marginTop: '4px' }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
             Smart Task & Project Management System
           </p>
         </div>
@@ -89,9 +90,9 @@ export default function LoginPage() {
             display: 'flex',
             alignItems: 'center',
             gap: '10px',
-            backgroundColor: '#fee2e2',
-            color: '#b91c1c',
-            border: '1px solid #fecaca',
+            backgroundColor: 'var(--danger-bg)',
+            color: 'var(--danger)',
+            border: '1px solid var(--danger-border)',
             padding: '12px 14px',
             borderRadius: '8px',
             fontSize: '13px',
@@ -140,7 +141,7 @@ export default function LoginPage() {
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: '#64748b',
+                  color: 'var(--text-muted)',
                   display: 'flex',
                   alignItems: 'center',
                   padding: '4px'
@@ -150,7 +151,7 @@ export default function LoginPage() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            <span style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px', display: 'block' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
               Demo password for all accounts: <code>password123</code>
             </span>
           </div>
@@ -169,9 +170,9 @@ export default function LoginPage() {
         <div style={{
           marginTop: '28px',
           paddingTop: '20px',
-          borderTop: '1px solid #e2e8f0'
+          borderTop: '1px solid var(--border-subtle)'
         }}>
-          <p style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#94a3b8', marginBottom: '10px', letterSpacing: '0.5px' }}>
+          <p style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '10px', letterSpacing: '0.5px' }}>
             ⚡ Demo Accounts (Click to Fill Fields)
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -182,10 +183,10 @@ export default function LoginPage() {
               style={{ justifyContent: 'space-between', padding: '10px 14px' }}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldCheck size={16} color="#4f46e5" />
+                <ShieldCheck size={16} color="var(--navy-ocean)" />
                 <span>Fill <strong>Admin</strong> (Alex Turner)</span>
               </span>
-              <span style={{ fontSize: '11px', color: '#6366f1', background: '#eef2ff', padding: '2px 6px', borderRadius: '4px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--navy-ocean)', background: 'var(--bg-subtle)', padding: '2px 6px', borderRadius: '4px', fontWeight: '600' }}>
                 Full Access
               </span>
             </button>
@@ -197,19 +198,19 @@ export default function LoginPage() {
               style={{ justifyContent: 'space-between', padding: '10px 14px' }}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <UserCheck size={16} color="#059669" />
+                <UserCheck size={16} color="var(--success)" />
                 <span>Fill <strong>Team Member</strong> (John Smith)</span>
               </span>
-              <span style={{ fontSize: '11px', color: '#059669', background: '#dcfce7', padding: '2px 6px', borderRadius: '4px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--success)', background: 'var(--success-bg)', padding: '2px 6px', borderRadius: '4px', fontWeight: '600' }}>
                 Member View
               </span>
             </button>
           </div>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '13px', color: '#64748b' }}>
+        <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '13px', color: 'var(--text-secondary)' }}>
           Don't have an account?{' '}
-          <Link to="/register" style={{ color: '#4f46e5', fontWeight: '600', textDecoration: 'none' }}>
+          <Link to="/register" style={{ color: 'var(--navy-ocean)', fontWeight: '600', textDecoration: 'none' }}>
             Register here
           </Link>
         </div>

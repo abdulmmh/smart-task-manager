@@ -12,17 +12,17 @@ export default function ProtectedRoute({ children, adminOnly = false }) {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        backgroundColor: '#f8fafc',
-        color: '#4f46e5',
-        fontSize: '16px',
+        backgroundColor: 'var(--bg-app)',
+        color: 'var(--navy-dark)',
+        fontSize: '15px',
         fontWeight: '600'
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
           <div style={{
             width: '32px',
             height: '32px',
-            border: '3px solid #e0e7ff',
-            borderTopColor: '#4f46e5',
+            border: '3px solid var(--border-subtle)',
+            borderTopColor: 'var(--navy-ocean)',
             borderRadius: '50%',
             animation: 'spin 0.8s linear infinite'
           }} />

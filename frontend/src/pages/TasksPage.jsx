@@ -258,10 +258,10 @@ export default function TasksPage() {
         gap: '16px'
       }}>
         <div>
-          <h1 style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--navy-dark)' }}>
             Tasks & Workflow Board
           </h1>
-          <p style={{ fontSize: '14px', color: '#64748b', marginTop: '2px' }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '2px' }}>
             Filter by project, priority, assignee, and track deadlines.
           </p>
         </div>
@@ -394,13 +394,13 @@ export default function TasksPage() {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                     <div style={{
                       width: '18px',
                       height: '18px',
-                      border: '2px solid #cbd5e1',
-                      borderTopColor: '#0a1931',
+                      border: '2px solid var(--border-subtle)',
+                      borderTopColor: 'var(--navy-ocean)',
                       borderRadius: '50%',
                       animation: 'spin 0.8s linear infinite'
                     }} />
@@ -410,7 +410,7 @@ export default function TasksPage() {
               </tr>
             ) : tasks.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+                <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                   No tasks found matching your filter criteria.
                 </td>
               </tr>
@@ -422,15 +422,15 @@ export default function TasksPage() {
                 return (
                   <tr key={task.id}>
                     <td>
-                      <div style={{ fontWeight: '600', color: '#0f172a' }}>{task.title}</div>
+                      <div style={{ fontWeight: '600', color: 'var(--navy-dark)' }}>{task.title}</div>
                       {task.description && (
-                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px', maxWidth: '300px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', maxWidth: '300px' }}>
                           {task.description}
                         </div>
                       )}
                     </td>
                     <td>
-                      <span style={{ fontSize: '13px', fontWeight: '500', color: '#475569' }}>
+                      <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
                         {task.project_name}
                       </span>
                     </td>
@@ -446,7 +446,7 @@ export default function TasksPage() {
                           width: '22px',
                           height: '22px',
                           borderRadius: '50%',
-                          backgroundColor: '#18181b',
+                          backgroundColor: 'var(--navy-dark)',
                           color: '#ffffff',
                           fontSize: '11px',
                           fontWeight: '700',
@@ -457,7 +457,7 @@ export default function TasksPage() {
                           {task.assignee_name ? task.assignee_name[0] : '?'}
                         </div>
                         <span style={{ fontSize: '13px' }}>
-                          {task.assignee_name || <em style={{ color: '#94a3b8' }}>Unassigned</em>}
+                          {task.assignee_name || <em style={{ color: 'var(--text-muted)' }}>Unassigned</em>}
                         </span>
                       </div>
                     </td>
@@ -465,7 +465,7 @@ export default function TasksPage() {
                       {task.is_overdue ? (
                         <Badge isOverdue={true} value={task.due_date} />
                       ) : (
-                        <span style={{ fontSize: '13px', color: '#475569' }}>
+                        <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
                           {task.due_date || 'No deadline'}
                         </span>
                       )}
@@ -536,8 +536,8 @@ export default function TasksPage() {
             /* Member View: Only allowed to update status */
             <div>
               <div style={{ marginBottom: '16px' }}>
-                <span style={{ fontSize: '13px', color: '#64748b' }}>Task:</span>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a' }}>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Task:</span>
+                <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--navy-dark)' }}>
                   {currentTask?.title}
                 </div>
               </div>

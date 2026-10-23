@@ -116,7 +116,7 @@ export default function ProjectsPage() {
 
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '60px', color: '#4f46e5' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '60px', color: 'var(--navy-ocean)' }}>
         <RefreshCw className="animate-spin" size={28} />
       </div>
     );
@@ -134,10 +134,10 @@ export default function ProjectsPage() {
         gap: '16px'
       }}>
         <div>
-          <h1 style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--navy-dark)' }}>
             Project Management
           </h1>
-          <p style={{ fontSize: '14px', color: '#64748b', marginTop: '2px' }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '2px' }}>
             Create and track strategic company initiatives and team deliverables.
           </p>
         </div>
@@ -152,7 +152,7 @@ export default function ProjectsPage() {
             <span>Create New Project</span>
           </button>
         ) : (
-          <span style={{ fontSize: '13px', color: '#64748b', background: '#f1f5f9', padding: '6px 12px', borderRadius: '6px' }}>
+          <span style={{ fontSize: '13px', color: 'var(--text-muted)', background: 'var(--bg-subtle)', padding: '6px 12px', borderRadius: '6px' }}>
             Team Member Access (Read-Only)
           </span>
         )}
@@ -160,7 +160,7 @@ export default function ProjectsPage() {
 
       {error && (
         <div className="alert-banner">
-          <AlertTriangle size={20} color="#b91c1c" />
+          <AlertTriangle size={20} color="var(--danger)" />
           <div className="alert-desc">{error}</div>
         </div>
       )}
@@ -188,9 +188,9 @@ export default function ProjectsPage() {
                   width: '32px',
                   height: '32px',
                   borderRadius: '6px',
-                  backgroundColor: '#f4f4f5',
-                  color: '#18181b',
-                  border: '1px solid #e4e4e7',
+                  backgroundColor: 'var(--bg-subtle)',
+                  color: 'var(--navy-dark)',
+                  border: '1px solid var(--border-subtle)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
@@ -222,10 +222,10 @@ export default function ProjectsPage() {
                 )}
               </div>
 
-              <h3 style={{ fontSize: '17px', fontWeight: '700', color: '#0f172a', marginBottom: '8px' }}>
+              <h3 style={{ fontSize: '17px', fontWeight: '700', color: 'var(--navy-dark)', marginBottom: '8px' }}>
                 {proj.name}
               </h3>
-              <p style={{ fontSize: '13px', color: '#475569', minHeight: '40px', marginBottom: '16px' }}>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', minHeight: '40px', marginBottom: '16px' }}>
                 {proj.description || 'No description provided.'}
               </p>
             </div>
@@ -234,8 +234,8 @@ export default function ProjectsPage() {
               {/* Progress Bar */}
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
-                  <span style={{ fontWeight: '600', color: '#64748b' }}>Completion</span>
-                  <span style={{ fontWeight: '700', color: '#4f46e5' }}>{proj.progress_percentage}%</span>
+                  <span style={{ fontWeight: '600', color: 'var(--text-muted)' }}>Completion</span>
+                  <span style={{ fontWeight: '700', color: 'var(--navy-ocean)' }}>{proj.progress_percentage}%</span>
                 </div>
                 <div className="progress-bar-bg">
                   <div 
@@ -251,18 +251,18 @@ export default function ProjectsPage() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 paddingTop: '14px',
-                borderTop: '1px solid #f1f5f9',
+                borderTop: '1px solid var(--border-subtle)',
                 fontSize: '12px',
-                color: '#64748b'
+                color: 'var(--text-muted)'
               }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <CheckCircle2 size={14} color="#16a34a" /> {proj.completed_tasks} done
+                  <CheckCircle2 size={14} color="var(--success)" /> {proj.completed_tasks} done
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Clock size={14} color="#d97706" /> {proj.pending_tasks} pending
+                  <Clock size={14} color="var(--warning)" /> {proj.pending_tasks} pending
                 </span>
                 {proj.overdue_tasks > 0 && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626', fontWeight: '600' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--danger)', fontWeight: '600' }}>
                     <AlertTriangle size={14} /> {proj.overdue_tasks} overdue
                   </span>
                 )}

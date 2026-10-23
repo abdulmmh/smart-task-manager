@@ -28,7 +28,7 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = '54
               background: 'transparent', 
               border: 'none', 
               cursor: 'pointer',
-              color: '#94a3b8',
+              color: 'var(--text-muted)',
               display: 'flex',
               padding: '4px',
               borderRadius: '6px'

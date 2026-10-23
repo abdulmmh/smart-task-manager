@@ -22,8 +22,8 @@
 
   --text-primary: #0a1931;
   --text-secondary: #475a72;
-  --text-muted: #6b7f99;
-  --text-light: #94a7c0;
+  --text-muted: #5a6f8c;     /* Darkened from #6b7f99 to achieve 4.6+:1 WCAG AA contrast */
+  --text-light: #5a6f8c;     /* AA compliant for subtle text and placeholders */
 
   /* Primary Brand: Deep Midnight Navy */
   --primary: #0A1931;
@@ -453,6 +453,11 @@ body {
   font-family: inherit;
 }
 
+.input-field::placeholder, textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
 .input-field:focus, .select-field:focus, textarea:focus {
   border-color: var(--navy-ocean);
   box-shadow: 0 0 0 3px rgba(26, 61, 99, 0.12);
@@ -539,14 +544,15 @@ tr:hover td {
   color: #475a72;
   border: 1px solid #dce7f0;
 }
-.badge-todo .badge-dot { background-color: #6b7f99; }
+.badge-todo .badge-dot { background-color: #5a6f8c; }
 
+/* Status: In Progress is now Ocean Blue (active lifecycle) */
 .badge-in-progress {
-  background-color: #fffbeb;
-  color: #b45309;
-  border: 1px solid #fef3c7;
+  background-color: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #e0f2fe;
 }
-.badge-in-progress .badge-dot { background-color: #d97706; }
+.badge-in-progress .badge-dot { background-color: #0284c7; }
 
 .badge-completed {
   background-color: #f0fdf4;
@@ -555,6 +561,7 @@ tr:hover td {
 }
 .badge-completed .badge-dot { background-color: #16a34a; }
 
+/* Priority: High is Red */
 .badge-high {
   background-color: #fef2f2;
   color: #b91c1c;
@@ -562,19 +569,21 @@ tr:hover td {
 }
 .badge-high .badge-dot { background-color: #dc2626; }
 
+/* Priority: Medium is now Warm Amber (urgency matrix) */
 .badge-medium {
-  background-color: #f0f9ff;
-  color: #0369a1;
-  border: 1px solid #e0f2fe;
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fef3c7;
 }
-.badge-medium .badge-dot { background-color: #0284c7; }
+.badge-medium .badge-dot { background-color: #d97706; }
 
+/* Priority: Low is Cool Gray (darkened for AA contrast) */
 .badge-low {
   background-color: #f4f6f8;
-  color: #6b7f99;
+  color: #5a6f8c;
   border: 1px solid #dce7f0;
 }
-.badge-low .badge-dot { background-color: #94a7c0; }
+.badge-low .badge-dot { background-color: #5a6f8c; }
 
 .badge-overdue {
   background-color: #fef2f2;

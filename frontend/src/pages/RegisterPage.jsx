@@ -43,7 +43,7 @@ export default function RegisterPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#f8fafc',
+      backgroundColor: 'var(--bg-app)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -54,8 +54,8 @@ export default function RegisterPage() {
         maxWidth: '440px',
         backgroundColor: '#ffffff',
         borderRadius: '14px',
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03)',
+        border: '1px solid var(--border-subtle)',
+        boxShadow: 'var(--shadow-lg)',
         padding: '36px'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
@@ -63,21 +63,22 @@ export default function RegisterPage() {
             width: '44px',
             height: '44px',
             borderRadius: '10px',
-            background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+            backgroundColor: 'var(--navy-dark)',
             color: '#ffffff',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontWeight: '800',
-            fontSize: '20px',
-            margin: '0 auto 12px'
+            fontSize: '18px',
+            margin: '0 auto 12px',
+            boxShadow: 'var(--shadow-sm)'
           }}>
             BM
           </div>
-          <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.4px' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--navy-dark)', letterSpacing: '-0.4px' }}>
             Create Account
           </h1>
-          <p style={{ fontSize: '14px', color: '#64748b', marginTop: '4px' }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
             Join Bright Mind's Project Management System
           </p>
         </div>
@@ -87,9 +88,9 @@ export default function RegisterPage() {
             display: 'flex',
             alignItems: 'center',
             gap: '10px',
-            backgroundColor: '#fee2e2',
-            color: '#b91c1c',
-            border: '1px solid #fecaca',
+            backgroundColor: 'var(--danger-bg)',
+            color: 'var(--danger)',
+            border: '1px solid var(--danger-border)',
             padding: '12px 14px',
             borderRadius: '8px',
             fontSize: '13px',
@@ -151,7 +152,7 @@ export default function RegisterPage() {
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: '#64748b',
+                  color: 'var(--text-muted)',
                   display: 'flex',
                   alignItems: 'center',
                   padding: '4px'
@@ -185,9 +186,9 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '13px', color: '#64748b' }}>
+        <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '13px', color: 'var(--text-secondary)' }}>
           Already have an account?{' '}
-          <Link to="/login" style={{ color: '#4f46e5', fontWeight: '600', textDecoration: 'none' }}>
+          <Link to="/login" style={{ color: 'var(--navy-ocean)', fontWeight: '600', textDecoration: 'none' }}>
             Sign in
           </Link>
         </div>

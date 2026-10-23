@@ -73,9 +73,9 @@ export default function Badge({ type, value, isOverdue }) {
         borderRadius: '9999px',
         textTransform: 'uppercase',
         letterSpacing: '0.5px',
-        backgroundColor: isAdmin ? '#18181b' : '#f4f4f5',
-        color: isAdmin ? '#ffffff' : '#52525b',
-        border: isAdmin ? '1px solid #18181b' : '1px solid #e4e4e7',
+        backgroundColor: isAdmin ? 'var(--navy-dark)' : 'var(--bg-subtle)',
+        color: isAdmin ? '#ffffff' : 'var(--text-secondary)',
+        border: isAdmin ? '1px solid var(--navy-dark)' : '1px solid var(--border-subtle)',
       }}>
         {isAdmin ? 'Admin' : 'Member'}
       </span>
