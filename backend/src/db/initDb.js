@@ -2,16 +2,22 @@ const fs = require('fs');
 const path = require('path');
 const { Client } = require('pg');
 const { pool } = require('../config/db');
-const { DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD } = require('../config/env');
+const { DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_SSL } = require('../config/env');
 
 async function ensureDatabaseExists() {
-  const adminClient = new Client({
+  const adminClientConfig = {
     host: DB_HOST,
     port: DB_PORT,
     database: 'postgres',
     user: DB_USER,
     password: DB_PASSWORD,
-  });
+  };
+
+  if (DB_SSL) {
+    adminClientConfig.ssl = { rejectUnauthorized: false };
+  }
+
+  const adminClient = new Client(adminClientConfig);
 
   try {
     await adminClient.connect();

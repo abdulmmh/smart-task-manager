@@ -24,4 +24,5 @@ module.exports = {
   DB_NAME: process.env.DB_NAME || 'bm_task_manager',
   DB_USER: process.env.DB_USER || 'postgres',
   DB_PASSWORD: process.env.DB_PASSWORD || 'postgres',
+  DB_SSL: process.env.DB_SSL === 'true',
 };
