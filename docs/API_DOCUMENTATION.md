@@ -150,6 +150,13 @@ Returns all registered users for assignment dropdowns.
 
 ---
 
+### 1.5 Session Lifecycle & Client-Side Logout
+Authentication is powered by stateless JSON Web Tokens (JWT). Logout is executed client-side by purging the token from browser storage (`localStorage`) and React application state (`AuthContext`).
+
+> **Architectural Note**: In this stateless prototype, previously issued JWT tokens remain valid until their configured expiration timestamp (`JWT_EXPIRES_IN`). For strict zero-trust or banking environments requiring immediate server-side revocation upon logout, a distributed Redis token-blocklist or database-backed refresh-token rotation model can be incorporated.
+
+---
+
 ## 2. Project Management Endpoints
 
 ### 2.1 List All Projects

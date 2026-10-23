@@ -66,6 +66,7 @@ graph TD
 - **Role Enforcement**:
   - **`admin`**: Full administrative access — create/update/delete projects, assign tasks to any employee, manage task lifecycle, and view executive metrics.
   - **`member`**: Focused team access — view projects (read-only), view tasks, and independently update task completion status (`To Do` -> `In Progress` -> `Completed`) on their assigned work. Attempting to modify other fields returns a `403 Forbidden` error.
+- **Session Lifecycle**: Stateless client-side logout purging `localStorage` and React authentication state. Tokens expire automatically based on `JWT_EXPIRES_IN=7d`.
 
 ### 2. Project Portfolio Management
 - Real-time dynamic completion percentage computation (`COUNT(*) FILTER (WHERE status = 'Completed') / total * 100`).
@@ -78,7 +79,7 @@ graph TD
 - **Nullable Field Clearing**: Updating tasks with `due_date: null` or `description: null` explicitly clears the database record using SQL `CASE WHEN` logic.
 
 ### 4. Executive Dashboard & Metrics
-- **Zero N+1 Roundtrips**: Aggregated in a **single database query** using SQL subqueries and conditional filtering (`total_projects`, `total_tasks`, `completed_tasks`, `pending_tasks`, `overdue_tasks`, `high_priority_pending`, `completion_rate`).
+- **Zero N+1 Roundtrips**: Core KPI metrics aggregated in a single atomic database query using SQL conditional filtering (`total_projects`, `total_tasks`, `completed_tasks`, `pending_tasks`, `overdue_tasks`, `high_priority_pending`, `completion_rate`). The dashboard endpoint executes 3 optimized queries total for the full payload (KPIs, overdue tasks, project distributions).
 - **Overdue Task Tracking**: Dedicated alert banner and filter for tasks with past-due deadlines that are not yet completed, ordered by due date and ranked priority (`High` > `Medium` > `Low`).
 
 ### 5. Polished Executive UI & Responsive Design
@@ -94,8 +95,8 @@ graph TD
 | Layer | Technology | Key Libraries / Modules |
 |---|---|---|
 | **Frontend** | React 19.3, Vite 8.3 | `react-router-dom` v7, `axios`, `lucide-react`, Vanilla CSS Tokens |
-| **Backend** | Node.js (v20+), Express 5.3 | `pg` (Connection Pooling), `jsonwebtoken`, `bcryptjs`, `cors`, `dotenv` |
-| **Database** | PostgreSQL 16+ / 17 | Relational DDL, UUID v4 (`gen_random_uuid()`), B-Tree Indexes, Dynamic Interval Seeds |
+| **Backend** | Node.js (v20.19+ or v22+ LTS), Express 5.3 | `pg` (Connection Pooling), `jsonwebtoken`, `bcryptjs`, `cors`, `dotenv` |
+| **Database** | PostgreSQL 14+, 16+, 17 | Relational DDL, UUID v4 (`gen_random_uuid()`), B-Tree Indexes, Dynamic Interval Seeds |
 | **Testing** | Node.js Test Runner | Native Integration Test Suite (`node:test`, `node:assert`) |
 
 ---
@@ -200,7 +201,11 @@ The database migration seeds **7 users**, **3 realistic projects**, and **14 tas
    ```
    *(On Windows PowerShell: `Copy-Item .env.example .env`)*
 
-   Verify or update the connection settings in `backend/.env`:
+   Verify or update the connection settings in `backend/.env`. Generate a cryptographically strong secret for `JWT_SECRET`:
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+   ```
+
    ```env
    PORT=5000
    NODE_ENV=development
@@ -209,7 +214,7 @@ The database migration seeds **7 users**, **3 realistic projects**, and **14 tas
    DB_NAME=bm_task_manager
    DB_USER=postgres
    DB_PASSWORD=postgres
-   JWT_SECRET=super_secret_brightmind_jwt_key_2026_recruitment
+   JWT_SECRET=your_generated_cryptographic_secret_min_32_characters
    JWT_EXPIRES_IN=7d
    CLIENT_URL=http://localhost:5173
    ```
@@ -225,7 +230,7 @@ The database migration seeds **7 users**, **3 realistic projects**, and **14 tas
    ```bash
    npm run init-db
    ```
-   > **Note**: `initDb.js` will automatically connect to your PostgreSQL instance, create the `bm_task_manager` database if it does not already exist, execute the DDL schema (dropping and recreating tables cleanly), and insert all pre-seeded accounts and tasks.
+   > ⚠️ **Data Reset Caution**: `initDb.js` connects to PostgreSQL, creates `bm_task_manager` if absent, applies `schema.sql` (dropping and recreating tables cleanly via `DROP TABLE IF EXISTS ... CASCADE`), and seeds realistic demo data. This is designed for fresh reviewer evaluation; avoid running it on databases with persistent production data.
 
 5. **Start Backend Server**:
    ```bash
@@ -257,7 +262,7 @@ The database migration seeds **7 users**, **3 realistic projects**, and **14 tas
 
 ## Running Automated Tests
 
-The backend includes a comprehensive 25-assertion integration test suite built with Node's native test runner (`node:test`, `node:assert`). It starts an in-process HTTP server and tests actual network round-trips and database mutations.
+The backend includes a comprehensive 29-assertion integration test suite built with Node's native test runner (`node:test`, `node:assert`). It starts an in-process HTTP server and tests actual network round-trips and database mutations.
 
 Run the test suite from the `backend/` directory:
 ```bash
@@ -265,11 +270,12 @@ npm test
 ```
 
 ### Test Coverage Highlights:
-- **Authentication**: Valid login, bad password rejection (401), invalid/forged JWT rejection (401), missing token guard (401).
+- **Authentication & Infrastructure**: Live `/health` database ping verification (200/503), valid login, bad password rejection (401), invalid/forged JWT rejection (401), missing token guard (401).
 - **Privilege Escalation Prevention**: Registering with `role: "admin"` strictly creates a member account (201).
-- **Input Validation**: Rejection of invalid calendar dates like `"2026-02-31"` (400), non-ISO dates `"10/05/2026"` (400), whitespace titles (400), overlong titles >200 chars (400), and empty string due dates (400).
+- **Input Validation**: Rejection of invalid calendar dates like `"2026-02-31"` (400), non-ISO dates `"10/05/2026"` (400), whitespace titles (400), overlong titles >200 chars (400), empty string due dates (400), and null status/priority payloads (400).
 - **Role-Based Access Control (RBAC)**:
   - Member cannot create a project (403).
+  - Member cannot update a project (403).
   - Member cannot delete a project (403).
   - Member cannot create a task (403).
   - Member cannot delete a task (403).
@@ -278,6 +284,7 @@ npm test
   - Member **can** update status on their assigned task (200).
 - **CRUD & Field Clearing**:
   - Admin creates project and task.
+  - Admin updates project title and description (200).
   - Admin updates task clearing `due_date: null` and `description: null`, verifying values become `null` in PostgreSQL.
   - Cascading deletion: deleting a project deletes all associated child tasks.
 - **Filtering & Dashboard**: Multi-field query filtering with support for both `projectId`/`project_id` and `assigneeId`/`assignee_id`, overdue filter, and KPI metric aggregations.

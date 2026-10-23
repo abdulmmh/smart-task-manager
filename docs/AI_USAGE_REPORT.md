@@ -8,7 +8,7 @@
 
 ### 1. Tools & Workflow
 - **Antigravity AI Assistant**: Utilized as a pair-programming partner for architectural scaffolding, SQL aggregation design, and full-stack integration.
-- **Node.js Native Test Runner (`node:test`, `node:assert`)**: Used to construct a 25-assertion integration test suite verifying authorization, RBAC boundaries, schema cascades, and validation edge cases.
+- **Node.js Native Test Runner (`node:test`, `node:assert`)**: Used to construct a 29-assertion integration test suite verifying authorization, RBAC boundaries, schema cascades, and validation edge cases.
 - **PostgreSQL Native Engine (`psql`)**: Used to validate schema constraints, foreign key cascades (`ON DELETE CASCADE`, `ON DELETE SET NULL`), and query execution.
 
 ---
@@ -35,14 +35,14 @@ In portfolio management, each project requires real-time completion percentages 
 ---
 
 ### 4. Deficient AI Suggestions & How They Were Corrected
-1. **Insecure JWT Secret Fallback**: The initial AI draft included a hardcoded fallback string (`process.env.JWT_SECRET || 'secret'`), allowing attackers to forge tokens using public defaults. I rejected this pattern, centralized environment loading in `src/config/env.js`, and configured the application to fail fast on startup if `JWT_SECRET` is unset.
-2. **Silent Failure When Clearing Nullable Fields**: The AI originally scaffolded updates using `COALESCE($n, due_date)`. When clients sent `null` to clear a due date or description, `COALESCE` treated `null` as absent and retained the old value while returning `200 OK`. I identified this through automated tests and refactored the query to use explicit boolean flags: `due_date = CASE WHEN $flag::boolean THEN $val::date ELSE due_date END`.
+1. **Insecure JWT Secret Fallbacks**: The initial AI scaffold scattered hardcoded fallback strings across multiple controller and middleware files, allowing token forging using public repository defaults. I eliminated all fallbacks, centralized config in `src/config/env.js`, and added startup validation rejecting placeholders and keys under 32 characters.
+2. **Silent Failure When Clearing Nullable Fields**: The AI originally scaffolded updates using `COALESCE($n, due_date)`. When clients sent `null` to clear a due date or description, `COALESCE` treated `null` as absent and retained the old value while returning `200 OK`. I identified this during manual API probing of field-clearing edge cases, subsequently authoring regression tests and refactoring the query to explicit boolean flags: `due_date = CASE WHEN $flag::boolean THEN $val::date ELSE due_date END`.
 3. **Permissive Date Parsing**: The AI suggested `!isNaN(new Date(s).getTime())` for date validation. This allowed non-existent calendar dates like `2026-02-31` to reach PostgreSQL, triggering unhandled 500 exceptions. I replaced it with strict ISO format and calendar day matching.
 
 ---
 
 ### 5. Verification Methodology
 All AI-generated code was verified empirically:
-1. **Automated Integration Tests**: 25 tests covering 401/403/400/404 HTTP codes, RBAC rules, field clearing, and cascading deletes.
+1. **Automated Integration Tests**: 29 tests covering 401/403/400/404 HTTP codes, RBAC rules, field clearing, and cascading deletes.
 2. **Database Verification**: Confirming check constraints and cascading foreign keys in PostgreSQL.
 3. **Static Analysis & Build**: Verified with ESLint (0 errors, 0 warnings) and production Vite build.
