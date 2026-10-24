@@ -6,6 +6,17 @@
 [![React](https://img.shields.io/badge/React-v19.3-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-v8.3-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/Demo-Live%20App-0A1931?style=flat&logo=render&logoColor=white)](https://smart-task-manager-frontend-ing7.onrender.com)
+
+> ### 🌐 Live Production Deployment
+> - **Live Web Application**: [https://smart-task-manager-frontend-ing7.onrender.com](https://smart-task-manager-frontend-ing7.onrender.com)
+> - **Live REST API (Health Check)**: [https://smart-task-manager-akxk.onrender.com/api/health](https://smart-task-manager-akxk.onrender.com/api/health)
+> - **Cloud Database**: Neon Serverless PostgreSQL (AWS us-east-2)
+> - **Pre-Configured Demo Credentials**:
+>   - **Admin Access**: `alex.admin@brightmind.com` | `password123`
+>   - **Team Member Access**: `john.dev@brightmind.com` | `password123`
+> 
+> *Tip: Hosted on Render Free Tier. If the backend is idle, the very first API request may take ~45–50 seconds for the instance to warm up.*
 
 An enterprise-grade, full-stack Task and Project Management platform developed for the **Bright Mind Ltd. Full-Stack Developer Assessment**. Designed with a performance-first PostgreSQL schema, secure JWT Role-Based Access Control (RBAC), atomic analytical metric queries, and an executive Midnight Navy UI with mobile-responsive navigation.
 
