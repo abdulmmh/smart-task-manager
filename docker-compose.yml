@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database Container
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: bm-postgres-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bm_task_manager
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/src/db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./backend/src/db/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bm_task_manager"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Express REST API Backend
+  backend-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bm-backend-api
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: 5000
+      NODE_ENV: production
+      DB_HOST: postgres-db
+      DB_PORT: 5432
+      DB_NAME: bm_task_manager
+      DB_USER: postgres
+      DB_PASSWORD: postgrespassword
+      DB_SSL: "false"
+      JWT_SECRET: brightmind_production_jwt_docker_secret_key_2026
+      JWT_EXPIRES_IN: 7d
+      CLIENT_URL: http://localhost:5173
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+    driver: local
