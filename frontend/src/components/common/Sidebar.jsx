@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, CheckSquare, X } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, CheckSquare, CheckCircle2, Database, X } from 'lucide-react';
 import client from '../../api/client';
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -23,10 +23,12 @@ export default function Sidebar({ isOpen, onClose }) {
       {isOpen && <div className="sidebar-backdrop" onClick={onClose} />}
       <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <div className="sidebar-logo">BM</div>
-          <div style={{ flex: 1 }}>
-            <div className="sidebar-title">Bright Mind</div>
-            <div className="sidebar-subtitle">Project & Task Hub</div>
+          <div className="sidebar-logo">
+            <CheckCircle2 size={22} color="#FFFFFF" strokeWidth={2.5} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="sidebar-title">BrightMind</div>
+            <div className="sidebar-subtitle">Task & Project Hub</div>
           </div>
           <button 
             type="button" 
@@ -38,23 +40,15 @@ export default function Sidebar({ isOpen, onClose }) {
           </button>
         </div>
 
+        <div className="sidebar-section-title">Main Menu</div>
         <nav className="sidebar-nav">
           <NavLink 
             to="/dashboard" 
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             onClick={onClose}
           >
-            <LayoutDashboard size={16} />
+            <LayoutDashboard size={18} />
             <span>Dashboard</span>
-          </NavLink>
-
-          <NavLink 
-            to="/projects" 
-            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            onClick={onClose}
-          >
-            <FolderKanban size={16} />
-            <span>Projects</span>
           </NavLink>
 
           <NavLink 
@@ -62,29 +56,31 @@ export default function Sidebar({ isOpen, onClose }) {
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             onClick={onClose}
           >
-            <CheckSquare size={16} />
-            <span>Tasks & Workflow</span>
+            <CheckSquare size={18} />
+            <span>Task</span>
+          </NavLink>
+
+          <NavLink 
+            to="/projects" 
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            onClick={onClose}
+          >
+            <FolderKanban size={18} />
+            <span>Projects</span>
           </NavLink>
         </nav>
 
-        <div style={{
-          padding: '14px 18px',
-          borderTop: '1px solid var(--border-subtle)',
-          fontSize: '11px',
-          color: 'var(--text-muted)',
-          fontFamily: 'ui-monospace, monospace',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <span style={{
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            backgroundColor: isDbConnected ? 'var(--success)' : 'var(--danger)',
-            display: 'inline-block'
-          }} />
-          <span>{isDbConnected ? 'PostgreSQL Connected' : 'PostgreSQL Disconnected'}</span>
+        <div className="sidebar-section-title">Infrastructure</div>
+        <div className="sidebar-bottom">
+          <Database size={15} color={isDbConnected ? 'var(--success)' : 'var(--danger)'} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-primary)' }}>
+              {isDbConnected ? 'PostgreSQL Active' : 'PostgreSQL Down'}
+            </span>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+              {isDbConnected ? 'Database Connected' : 'Connection Failed'}
+            </span>
+          </div>
         </div>
       </aside>
     </>

@@ -11,10 +11,10 @@ export default function Layout() {
   const closeSidebar = () => setIsSidebarOpen(false);
 
   const getPageTitle = (pathname) => {
-    if (pathname.startsWith('/dashboard')) return 'Executive Dashboard & Metrics';
-    if (pathname.startsWith('/projects')) return 'Project Portfolio Management';
-    if (pathname.startsWith('/tasks')) return 'Task Management & Assignment';
-    return 'Task & Project Hub';
+    if (pathname.startsWith('/dashboard')) return 'Dashboard';
+    if (pathname.startsWith('/projects')) return 'Projects';
+    if (pathname.startsWith('/tasks')) return 'Tasks & Workflow';
+    return 'Workspace';
   };
 
   return (

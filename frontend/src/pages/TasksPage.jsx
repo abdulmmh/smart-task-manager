@@ -10,10 +10,15 @@ import {
   Edit3, 
   Trash2, 
   AlertTriangle,
-  X
+  X,
+  CheckSquare,
+  Clock,
+  Sparkles,
+  FolderKanban
 } from 'lucide-react';
 import Badge from '../components/common/Badge';
 import Modal from '../components/common/Modal';
+import { getProjectTheme, getUserTheme } from '../utils/projectTheme';
 
 export default function TasksPage() {
   const { user, isAdmin } = useAuth();
@@ -33,6 +38,25 @@ export default function TasksPage() {
   const [selectedPriority, setSelectedPriority] = useState(searchParams.get('priority') || '');
   const [selectedAssignee, setSelectedAssignee] = useState(searchParams.get('assigneeId') || '');
   const [isOverdueOnly, setIsOverdueOnly] = useState(searchParams.get('overdue') === 'true');
+
+  // Synchronize when URL search param changes externally (e.g. from Topbar search or Notifications)
+  const urlSearchParam = searchParams.get('search') || '';
+  const [prevUrlSearch, setPrevUrlSearch] = useState(urlSearchParam);
+
+  if (urlSearchParam !== prevUrlSearch) {
+    setPrevUrlSearch(urlSearchParam);
+    setSearch(urlSearchParam);
+    setDebouncedSearch(urlSearchParam);
+  }
+
+  // Synchronize projectId when navigated from ProjectsPage or URL query
+  const urlProjectId = searchParams.get('projectId') || '';
+  const [prevUrlProjectId, setPrevUrlProjectId] = useState(urlProjectId);
+
+  if (urlProjectId !== prevUrlProjectId) {
+    setPrevUrlProjectId(urlProjectId);
+    setSelectedProject(urlProjectId);
+  }
 
   // Debounce search input by 300ms
   useEffect(() => {
@@ -87,7 +111,7 @@ export default function TasksPage() {
       };
 
       const data = await tasksApi.getTasks(filters);
-      setTasks(data.tasks);
+      setTasks(data.tasks || []);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load tasks.');
     } finally {
@@ -100,8 +124,8 @@ export default function TasksPage() {
     Promise.all([projectsApi.getProjects(), authApi.getUsers()])
       .then(([projRes, usersRes]) => {
         if (isCurrent) {
-          setProjects(projRes.projects);
-          setUsers(usersRes.users);
+          setProjects(projRes.projects || []);
+          setUsers(usersRes.users || []);
         }
       })
       .catch((err) => {
@@ -124,7 +148,7 @@ export default function TasksPage() {
     tasksApi.getTasks(filters)
       .then((data) => {
         if (isCurrent) {
-          setTasks(data.tasks);
+          setTasks(data.tasks || []);
           setIsLoading(false);
         }
       })
@@ -246,56 +270,90 @@ export default function TasksPage() {
     setIsOverdueOnly(false);
   };
 
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+  };
+
+  const hasActiveFilters = Boolean(
+    search || selectedProject || selectedStatus || selectedPriority || selectedAssignee || isOverdueOnly
+  );
+
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      
       {/* Top Header */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '24px',
+        alignItems: 'flex-start',
         flexWrap: 'wrap',
         gap: '16px'
       }}>
         <div>
-          <h1 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--navy-dark)' }}>
-            Tasks & Workflow Board
-          </h1>
-          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-            Filter by project, priority, assignee, and track deadlines.
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span className="pro-pill-badge">
+              <CheckSquare size={13} />
+              <span>Deliverables & Tasks</span>
+            </span>
+            <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)' }}>
+              • {tasks.length} Tasks Matching Filters
+            </span>
+          </div>
+          <h1 className="pro-heading">Tasks & Workflow Board</h1>
+          <p className="pro-subheading">
+            Filter by project, priority, assignee, and track deadlines across teams.
           </p>
         </div>
 
-        {isAdmin && (
-          <button 
-            type="button" 
-            onClick={handleOpenCreateModal} 
-            className="btn btn-primary"
-          >
-            <Plus size={16} />
-            <span>Create New Task</span>
-          </button>
-        )}
+        <div>
+          {isAdmin ? (
+            <button 
+              type="button" 
+              onClick={handleOpenCreateModal} 
+              className="btn-pro-primary"
+            >
+              <Plus size={16} strokeWidth={2.5} />
+              <span>Create New Task</span>
+            </button>
+          ) : (
+            <span style={{
+              fontSize: '12.5px',
+              color: 'var(--text-muted)',
+              background: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              padding: '6px 14px',
+              borderRadius: 'var(--radius-pill)',
+              fontWeight: '600',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <Sparkles size={13} color="var(--primary)" />
+              <span>Team Member (Status Updates Allowed)</span>
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Multi-Field Filter Bar (Mandatory Requirement #6) */}
-      <div className="filter-bar">
+      {/* Multi-Field Floating Filter Bar */}
+      <div className="pro-filter-card">
         {/* Live Search */}
-        <div className="search-input-wrapper">
+        <div className="search-input-wrapper" style={{ minWidth: '220px' }}>
           <Search size={16} className="search-icon" />
           <input
             type="text"
             className="input-field search-input"
-            placeholder="Search tasks by title or details..."
+            placeholder="Search tasks..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            style={{ borderRadius: 'var(--radius-pill)', height: '38px', background: '#F8FAFC' }}
           />
         </div>
 
         {/* Project Filter */}
         <select
-          className="select-field"
-          style={{ width: 'auto', minWidth: '160px' }}
+          className="pill-select"
           value={selectedProject}
           onChange={(e) => setSelectedProject(e.target.value)}
         >
@@ -307,8 +365,7 @@ export default function TasksPage() {
 
         {/* Status Filter */}
         <select
-          className="select-field"
-          style={{ width: 'auto', minWidth: '130px' }}
+          className="pill-select"
           value={selectedStatus}
           onChange={(e) => setSelectedStatus(e.target.value)}
         >
@@ -320,8 +377,7 @@ export default function TasksPage() {
 
         {/* Priority Filter */}
         <select
-          className="select-field"
-          style={{ width: 'auto', minWidth: '130px' }}
+          className="pill-select"
           value={selectedPriority}
           onChange={(e) => setSelectedPriority(e.target.value)}
         >
@@ -333,8 +389,7 @@ export default function TasksPage() {
 
         {/* Assignee Filter */}
         <select
-          className="select-field"
-          style={{ width: 'auto', minWidth: '150px' }}
+          className="pill-select"
           value={selectedAssignee}
           onChange={(e) => setSelectedAssignee(e.target.value)}
         >
@@ -348,23 +403,28 @@ export default function TasksPage() {
         <button
           type="button"
           onClick={() => setIsOverdueOnly(!isOverdueOnly)}
-          className={`btn btn-sm ${isOverdueOnly ? 'btn-danger' : 'btn-secondary'}`}
-          style={{ height: '38px' }}
+          className={`btn-pro-secondary ${isOverdueOnly ? 'pro-stat-chip overdue' : ''}`}
+          style={{
+            height: '38px',
+            backgroundColor: isOverdueOnly ? '#FEF2F2' : '#FFFFFF',
+            borderColor: isOverdueOnly ? '#FECACA' : '#E2E8F0',
+            color: isOverdueOnly ? '#DC2626' : 'var(--text-secondary)'
+          }}
         >
-          <AlertTriangle size={15} />
+          <AlertTriangle size={14} />
           <span>{isOverdueOnly ? 'Overdue Active' : 'Overdue Only'}</span>
         </button>
 
         {/* Reset Filter Button */}
-        {(search || selectedProject || selectedStatus || selectedPriority || selectedAssignee || isOverdueOnly) && (
+        {hasActiveFilters && (
           <button
             type="button"
             onClick={resetFilters}
-            className="btn btn-secondary btn-sm"
+            className="btn-pro-secondary"
             title="Clear all filters"
-            style={{ height: '38px' }}
+            style={{ height: '38px', color: 'var(--text-muted)' }}
           >
-            <X size={15} />
+            <X size={14} />
             <span>Reset</span>
           </button>
         )}
@@ -377,132 +437,137 @@ export default function TasksPage() {
         </div>
       )}
 
-      {/* Task List Table */}
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Task</th>
-              <th>Project</th>
-              <th>Status</th>
-              <th>Priority</th>
-              <th>Assignee</th>
-              <th>Deadline</th>
-              <th style={{ textAlign: 'right' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                    <div style={{
-                      width: '18px',
-                      height: '18px',
-                      border: '2px solid var(--border-subtle)',
-                      borderTopColor: 'var(--navy-ocean)',
-                      borderRadius: '50%',
-                      animation: 'spin 0.8s linear infinite'
-                    }} />
-                    <span style={{ fontSize: '13px', fontWeight: '500' }}>Filtering tasks...</span>
-                  </div>
-                </td>
-              </tr>
-            ) : tasks.length === 0 ? (
-              <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                  No tasks found matching your filter criteria.
-                </td>
-              </tr>
-            ) : (
-              tasks.map((task) => {
-                const isAssignedToMe = task.assignee_id === user?.id;
-                const canModify = isAdmin || isAssignedToMe;
+      {/* Responsive Task List (grid rows on desktop, stacked cards on tablet/mobile) */}
+      <div className="pro-table-wrapper">
+        <div className="task-grid-head">
+          <div>Task & Details</div>
+          <div>Project</div>
+          <div>Status</div>
+          <div>Priority</div>
+          <div>Assignee</div>
+          <div>Deadline</div>
+          <div className="task-col-actions">Actions</div>
+        </div>
 
-                return (
-                  <tr key={task.id}>
-                    <td>
-                      <div style={{ fontWeight: '600', color: 'var(--navy-dark)' }}>{task.title}</div>
-                      {task.description && (
-                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', maxWidth: '300px' }}>
-                          {task.description}
-                        </div>
-                      )}
-                    </td>
-                    <td>
-                      <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                        {task.project_name}
-                      </span>
-                    </td>
-                    <td>
-                      <Badge type="status" value={task.status} />
-                    </td>
-                    <td>
-                      <Badge type="priority" value={task.priority} />
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <div style={{
-                          width: '22px',
-                          height: '22px',
-                          borderRadius: '50%',
-                          backgroundColor: 'var(--navy-dark)',
-                          color: '#ffffff',
-                          fontSize: '11px',
-                          fontWeight: '700',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}>
-                          {task.assignee_name ? task.assignee_name[0] : '?'}
-                        </div>
-                        <span style={{ fontSize: '13px' }}>
-                          {task.assignee_name || <em style={{ color: 'var(--text-muted)' }}>Unassigned</em>}
-                        </span>
-                      </div>
-                    </td>
-                    <td>
-                      {task.is_overdue ? (
-                        <Badge isOverdue={true} value={task.due_date} />
-                      ) : (
-                        <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                          {task.due_date || 'No deadline'}
-                        </span>
-                      )}
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', gap: '6px' }}>
-                        {canModify && (
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEditModal(task)}
-                            className="btn btn-secondary btn-sm"
-                            title={isAdmin ? 'Edit task details' : 'Update status'}
-                            style={{ padding: '6px' }}
-                          >
-                            <Edit3 size={15} />
-                          </button>
-                        )}
-
-                        {isAdmin && (
-                          <button
-                            type="button"
-                            onClick={() => setDeleteTarget(task)}
-                            className="btn btn-danger btn-sm"
-                            title="Delete task"
-                            style={{ padding: '6px' }}
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
+        {isLoading ? (
+          <div className="task-empty-state">
+            <div style={{
+              width: '20px',
+              height: '20px',
+              border: '2px solid #E2E8F0',
+              borderTopColor: 'var(--primary)',
+              borderRadius: '50%',
+              animation: 'spin 0.8s linear infinite'
+            }} />
+            <span style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-muted)' }}>Filtering BrightMind tasks...</span>
+          </div>
+        ) : tasks.length === 0 ? (
+          <div className="task-empty-state">
+            <CheckSquare size={32} color="var(--text-light)" />
+            <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--navy-dark)' }}>No tasks match your criteria</span>
+            <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Try clearing your search filters or create a new task.</span>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="btn-pro-secondary"
+                style={{ marginTop: '8px' }}
+              >
+                Reset All Filters
+              </button>
             )}
-          </tbody>
-        </table>
+          </div>
+        ) : (
+          tasks.map((task) => {
+            const isAssignedToMe = task.assignee_id === user?.id;
+            const canModify = isAdmin || isAssignedToMe;
+            const projectInitial = (task.project_name || 'P').charAt(0).toUpperCase();
+            const monogramTheme = getProjectTheme(task.project_id, projects);
+
+            return (
+              <div key={task.id} className="task-row">
+                {/* Task Title & Details with Monogram */}
+                <div className="task-cell task-cell-main">
+                  <div
+                    className={`project-monogram ${monogramTheme}`}
+                    style={{ width: '38px', height: '38px', borderRadius: '11px', fontSize: '15px' }}
+                  >
+                    {projectInitial}
+                  </div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div className="task-title">{task.title}</div>
+                    {task.description && <div className="task-desc">{task.description}</div>}
+                  </div>
+                </div>
+
+                {/* Project Tag */}
+                <div className="task-cell" data-label="Project">
+                  <span className="task-project-tag" title={task.project_name}>
+                    <FolderKanban size={12} color="var(--primary)" />
+                    <span>{task.project_name}</span>
+                  </span>
+                </div>
+
+                {/* Status */}
+                <div className="task-cell" data-label="Status">
+                  <Badge type="status" value={task.status} />
+                </div>
+
+                {/* Priority */}
+                <div className="task-cell" data-label="Priority">
+                  <Badge type="priority" value={task.priority} />
+                </div>
+
+                {/* Assignee */}
+                <div className="task-cell" data-label="Assignee">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                    <div className={`task-assignee-avatar tone-${getUserTheme(task.assignee_id, users)}`}>{getInitials(task.assignee_name)}</div>
+                    <span className="task-assignee-name">
+                      {task.assignee_name || <span style={{ color: 'var(--text-light)', fontStyle: 'italic', fontWeight: '400' }}>Unassigned</span>}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Deadline */}
+                <div className="task-cell" data-label="Deadline">
+                  {task.is_overdue ? (
+                    <Badge isOverdue={true} value={task.due_date} />
+                  ) : (
+                    <span className="task-deadline">
+                      <Clock size={13} color="var(--text-light)" />
+                      <span>{task.due_date ? new Date(task.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'No deadline'}</span>
+                    </span>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="task-cell task-col-actions">
+                  {canModify && (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditModal(task)}
+                      className="pro-action-btn"
+                      title={isAdmin ? 'Edit task details' : 'Update status'}
+                    >
+                      <Edit3 size={14} />
+                    </button>
+                  )}
+
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => setDeleteTarget(task)}
+                      className="pro-action-btn pro-action-btn-danger"
+                      title="Delete task"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       {/* Task Modal (Create / Full Edit / Member Status Change) */}
@@ -523,7 +588,7 @@ export default function TasksPage() {
             color: 'var(--danger)',
             border: '1px solid var(--danger-border)',
             padding: '10px 14px',
-            borderRadius: '6px',
+            borderRadius: '8px',
             fontSize: '13px',
             marginBottom: '16px'
           }}>
@@ -535,20 +600,21 @@ export default function TasksPage() {
           {modalMode === 'status-only' ? (
             /* Member View: Only allowed to update status */
             <div>
-              <div style={{ marginBottom: '16px' }}>
-                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Task:</span>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--navy-dark)' }}>
+              <div style={{ marginBottom: '16px', background: 'var(--bg-subtle)', padding: '12px 16px', borderRadius: '12px', border: '1px solid #DBEAFE' }}>
+                <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--primary)', textTransform: 'uppercase' }}>Active Task</span>
+                <div style={{ fontSize: '15.5px', fontWeight: '700', color: 'var(--navy-dark)', marginTop: '2px' }}>
                   {currentTask?.title}
                 </div>
               </div>
 
               <div className="form-group">
-                <label className="form-label" htmlFor="statusUpdate">Update Status</label>
+                <label className="form-label" htmlFor="statusUpdate">Update Execution Status</label>
                 <select
                   id="statusUpdate"
                   className="select-field"
                   value={taskStatus}
                   onChange={(e) => setTaskStatus(e.target.value)}
+                  style={{ borderRadius: '12px' }}
                 >
                   <option value="To Do">To Do</option>
                   <option value="In Progress">In Progress</option>
@@ -569,6 +635,7 @@ export default function TasksPage() {
                   placeholder="e.g. Implement OAuth login provider"
                   value={taskTitle}
                   onChange={(e) => setTaskTitle(e.target.value)}
+                  style={{ borderRadius: '12px' }}
                 />
               </div>
 
@@ -581,6 +648,7 @@ export default function TasksPage() {
                   placeholder="Task instructions and requirements..."
                   value={taskDesc}
                   onChange={(e) => setTaskDesc(e.target.value)}
+                  style={{ borderRadius: '12px' }}
                 />
               </div>
 
@@ -593,6 +661,7 @@ export default function TasksPage() {
                     className="select-field"
                     value={taskProjectId}
                     onChange={(e) => setTaskProjectId(e.target.value)}
+                    style={{ borderRadius: '12px' }}
                   >
                     <option value="" disabled>Select project</option>
                     {projects.map((p) => (
@@ -608,6 +677,7 @@ export default function TasksPage() {
                     className="select-field"
                     value={taskAssigneeId}
                     onChange={(e) => setTaskAssigneeId(e.target.value)}
+                    style={{ borderRadius: '12px' }}
                   >
                     <option value="">Unassigned</option>
                     {users.map((u) => (
@@ -625,6 +695,7 @@ export default function TasksPage() {
                     className="select-field"
                     value={taskStatus}
                     onChange={(e) => setTaskStatus(e.target.value)}
+                    style={{ borderRadius: '12px' }}
                   >
                     <option value="To Do">To Do</option>
                     <option value="In Progress">In Progress</option>
@@ -639,6 +710,7 @@ export default function TasksPage() {
                     className="select-field"
                     value={taskPriority}
                     onChange={(e) => setTaskPriority(e.target.value)}
+                    style={{ borderRadius: '12px' }}
                   >
                     <option value="Low">Low</option>
                     <option value="Medium">Medium</option>
@@ -654,6 +726,7 @@ export default function TasksPage() {
                     className="input-field"
                     value={taskDueDate}
                     onChange={(e) => setTaskDueDate(e.target.value)}
+                    style={{ borderRadius: '12px' }}
                   />
                 </div>
               </div>
@@ -665,13 +738,14 @@ export default function TasksPage() {
               type="button"
               onClick={() => setIsModalOpen(false)}
               className="btn btn-secondary"
+              style={{ borderRadius: 'var(--radius-pill)' }}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="btn btn-primary"
+              className="btn-pro-primary"
             >
               {isSubmitting ? 'Saving...' : modalMode === 'create' ? 'Create Task' : 'Update Task'}
             </button>
@@ -694,6 +768,7 @@ export default function TasksPage() {
               type="button"
               onClick={() => setDeleteTarget(null)}
               className="btn btn-secondary"
+              style={{ borderRadius: 'var(--radius-pill)' }}
             >
               Cancel
             </button>
@@ -701,6 +776,7 @@ export default function TasksPage() {
               type="button"
               onClick={handleDeleteTask}
               className="btn btn-danger"
+              style={{ borderRadius: 'var(--radius-pill)' }}
             >
               Yes, Delete Task
             </button>
