@@ -1,7 +1,7 @@
 /**
  * Computes role-specific notifications for BrightMind workspace:
- * - Admin: Overdue tasks ("date sesh") and completed tasks ("konta sesh").
- * - Member: Newly assigned tasks ("notun assign kora kaaj") and upcoming deadlines within 1-2 days ("deadline kachakachi").
+ * - Admin: Overdue tasks across all projects and recently completed tasks.
+ * - Member: Newly assigned tasks and upcoming deadlines within 1-2 days.
  */
 
 export function computeNotifications(tasks = [], user = null) {
@@ -21,7 +21,7 @@ export function computeNotifications(tasks = [], user = null) {
   const notifications = [];
 
   if (user.role === 'admin') {
-    // 1. Overdue tasks ("date sesh") across the company
+    // 1. Overdue tasks across all projects
     tasks.forEach((t) => {
       const daysDiff = getDaysDiff(t.due_date);
       const isOverdue = t.status !== 'Completed' && (t.is_overdue || (daysDiff !== null && daysDiff < 0));
@@ -44,7 +44,7 @@ export function computeNotifications(tasks = [], user = null) {
       }
     });
 
-    // 2. Completed tasks ("konta sesh")
+    // 2. Recently completed tasks
     const completedTasks = tasks
       .filter((t) => t.status === 'Completed')
       .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))

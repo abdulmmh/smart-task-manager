@@ -7,9 +7,9 @@ services:
     container_name: bm-postgres-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: bm_task_manager
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: ${DB_NAME:-bm_task_manager}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgrespassword}
     ports:
       - "5432:5432"
     volumes:
@@ -17,7 +17,7 @@ services:
       - ./backend/src/db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
       - ./backend/src/db/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d bm_task_manager"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ${DB_NAME:-bm_task_manager}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -36,13 +36,13 @@ services:
       NODE_ENV: production
       DB_HOST: postgres-db
       DB_PORT: 5432
-      DB_NAME: bm_task_manager
-      DB_USER: postgres
-      DB_PASSWORD: postgrespassword
+      DB_NAME: ${DB_NAME:-bm_task_manager}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgrespassword}
       DB_SSL: "false"
-      JWT_SECRET: brightmind_production_jwt_docker_secret_key_2026
+      JWT_SECRET: ${JWT_SECRET:-brightmind_super_secure_jwt_secret_key_2026}
       JWT_EXPIRES_IN: 7d
-      CLIENT_URL: http://localhost:5173
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:5173}
     depends_on:
       postgres-db:
         condition: service_healthy

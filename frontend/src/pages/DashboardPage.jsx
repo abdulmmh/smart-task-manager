@@ -217,7 +217,7 @@ export default function DashboardPage() {
 
   // Admin project next deliverable timeline
   const adminProjectTimeline = useMemo(() => {
-    if (!adminProject?.id) return overdueAlerts[0]?.due_date || 'Nov 12, 2026';
+    if (!adminProject?.id) return overdueAlerts[0]?.due_date || 'All targets on schedule';
     const projTasks = tasks.filter((t) => String(t.project_id) === String(adminProject.id) && String(t.status || '').trim().toLowerCase() !== 'completed' && t.due_date);
     if (projTasks.length === 0) return 'All deliverables on schedule';
     const sorted = projTasks.sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
@@ -304,6 +304,81 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* 5 Core Mandatory Metric Cards (Assessment Requirement 5) */}
+      <div className="dashboard-kpi-grid">
+        {/* KPI 1: Total Projects */}
+        <div className="kpi-card">
+          <div className="kpi-card-header">
+            <span className="kpi-card-label">Total Projects</span>
+            <div className="kpi-card-icon" style={{ backgroundColor: 'rgba(10, 25, 49, 0.08)', color: 'var(--navy-dark)' }}>
+              <FolderKanban size={16} />
+            </div>
+          </div>
+          <div className="kpi-card-value">{metrics?.total_projects || 0}</div>
+          <div className="kpi-card-subtext">Active initiatives</div>
+        </div>
+
+        {/* KPI 2: Total Tasks */}
+        <div className="kpi-card">
+          <div className="kpi-card-header">
+            <span className="kpi-card-label">Total Tasks</span>
+            <div className="kpi-card-icon" style={{ backgroundColor: 'rgba(79, 70, 229, 0.08)', color: '#4F46E5' }}>
+              <CheckSquare size={16} />
+            </div>
+          </div>
+          <div className="kpi-card-value">{metrics?.total_tasks || 0}</div>
+          <div className="kpi-card-subtext">Across all initiatives</div>
+        </div>
+
+        {/* KPI 3: Pending Tasks */}
+        <div className="kpi-card">
+          <div className="kpi-card-header">
+            <span className="kpi-card-label">Pending Tasks</span>
+            <div className="kpi-card-icon" style={{ backgroundColor: 'rgba(30, 58, 138, 0.08)', color: 'var(--primary)' }}>
+              <Clock size={16} />
+            </div>
+          </div>
+          <div className="kpi-card-value">{metrics?.pending_tasks || 0}</div>
+          <div className="kpi-card-subtext">To Do & In Progress</div>
+        </div>
+
+        {/* KPI 4: Completed Tasks */}
+        <div className="kpi-card">
+          <div className="kpi-card-header">
+            <span className="kpi-card-label">Completed Tasks</span>
+            <div className="kpi-card-icon" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#059669' }}>
+              <CheckCircle2 size={16} />
+            </div>
+          </div>
+          <div className="kpi-card-value">{metrics?.completed_tasks || 0}</div>
+          <div className="kpi-card-subtext">{metrics?.completion_rate || 0}% resolution rate</div>
+        </div>
+
+        {/* KPI 5: Overdue Tasks */}
+        <div className={`kpi-card ${(metrics?.overdue_tasks || 0) > 0 ? 'overdue-active' : ''}`}>
+          <div className="kpi-card-header">
+            <span className="kpi-card-label" style={{ color: (metrics?.overdue_tasks || 0) > 0 ? 'var(--danger)' : undefined }}>
+              Overdue Tasks
+            </span>
+            <div 
+              className="kpi-card-icon" 
+              style={{ 
+                backgroundColor: (metrics?.overdue_tasks || 0) > 0 ? '#FEE2E2' : 'var(--bg-surface-soft)', 
+                color: (metrics?.overdue_tasks || 0) > 0 ? '#DC2626' : 'var(--text-muted)' 
+              }}
+            >
+              <AlertCircle size={16} />
+            </div>
+          </div>
+          <div className="kpi-card-value" style={{ color: (metrics?.overdue_tasks || 0) > 0 ? '#DC2626' : undefined }}>
+            {metrics?.overdue_tasks || 0}
+          </div>
+          <div className="kpi-card-subtext" style={{ color: (metrics?.overdue_tasks || 0) > 0 ? '#DC2626' : undefined, fontWeight: (metrics?.overdue_tasks || 0) > 0 ? '700' : '500' }}>
+            {(metrics?.overdue_tasks || 0) > 0 ? 'Requires attention' : 'All deadlines on track'}
+          </div>
+        </div>
+      </div>
+
       {/* Main BrightMind 2-Column Dashboard Grid */}
       <div className="pro-dashboard-layout">
         
@@ -357,7 +432,7 @@ export default function DashboardPage() {
 
                 <div>
                   <div className="pro-hero-value">{metrics?.pending_tasks || 0}</div>
-                  <div className="pro-hero-label">In progress Tasks</div>
+                  <div className="pro-hero-label">Pending Tasks</div>
                 </div>
               </div>
 

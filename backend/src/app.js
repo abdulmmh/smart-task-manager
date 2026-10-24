@@ -17,6 +17,19 @@ app.use(cors({
   credentials: true,
 }));
 
+// Reject non-JSON requests when a body payload is present on mutation routes
+app.use((req, res, next) => {
+  if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
+    const contentLength = req.headers['content-length'];
+    if (contentLength && contentLength !== '0' && !req.is('application/json')) {
+      return res.status(400).json({
+        error: 'Content-Type must be application/json for requests with a payload.'
+      });
+    }
+  }
+  next();
+});
+
 app.use(express.json());
 
 // Health check endpoint with real PostgreSQL connectivity verification

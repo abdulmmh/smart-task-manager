@@ -271,6 +271,19 @@ The database migration seeds **7 users**, **3 realistic projects**, and **14 tas
 
 ---
 
+### 3. Docker Containerization Setup (Bonus Feature)
+
+Spin up both PostgreSQL 16 and the Express REST API in Docker containers with a single command from the project root:
+
+```bash
+docker compose up --build
+```
+
+- **`bm-postgres-db`**: PostgreSQL 16 Alpine container with automatic schema and seed initialization mounted via `/docker-entrypoint-initdb.d`.
+- **`bm-backend-api`**: Multi-stage Node.js 20 Alpine container listening on port `5000` with container health checks.
+
+---
+
 ## Running Automated Tests
 
 The backend includes a comprehensive 29-assertion integration test suite built with Node's native test runner (`node:test`, `node:assert`). It starts an in-process HTTP server and tests actual network round-trips and database mutations.
@@ -356,7 +369,7 @@ bm-task-manager/
 │   │   └── server.js            # Server entrypoint with graceful shutdown
 │   ├── .env.example             # Documented template without committed secrets
 │   ├── package.json
-│   └── test-api.js              # 25-assertion Node.js native test suite
+│   └── test-api.js              # 29-assertion Node.js native test suite
 │
 ├── frontend/
 │   ├── src/

@@ -62,9 +62,17 @@ function errorHandler(err, req, res, next) {
     });
   }
 
-  // Operational client errors with explicit statusCode (e.g., 400, 401, 403, 404)
-  if (err.statusCode && err.statusCode < 500) {
-    return res.status(err.statusCode).json({ error: err.message });
+  // Express body-parser SyntaxError (malformed JSON) or explicit 4xx status
+  if (err instanceof SyntaxError && (err.status === 400 || err.statusCode === 400)) {
+    return res.status(400).json({
+      error: 'Malformed JSON payload in request body.'
+    });
+  }
+
+  // Operational client errors with explicit statusCode or status (e.g., 400, 401, 403, 404)
+  const clientStatus = err.statusCode || err.status;
+  if (clientStatus && clientStatus >= 400 && clientStatus < 500) {
+    return res.status(clientStatus).json({ error: err.message });
   }
 
   // All other unhandled or 5xx exceptions return a clean generic error

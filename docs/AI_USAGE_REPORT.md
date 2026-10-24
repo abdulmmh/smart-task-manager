@@ -8,6 +8,7 @@
 
 ### 1. Tools & Workflow
 - **Antigravity AI Assistant**: Utilized as a pair-programming partner for architectural scaffolding, SQL aggregation design, and full-stack integration.
+- **Claude AI**: Utilized for independent static code review, security auditing, and assessment requirements verification.
 - **Node.js Native Test Runner (`node:test`, `node:assert`)**: Used to construct a 29-assertion integration test suite verifying authorization, RBAC boundaries, schema cascades, and validation edge cases.
 - **PostgreSQL Native Engine (`psql`)**: Used to validate schema constraints, foreign key cascades (`ON DELETE CASCADE`, `ON DELETE SET NULL`), and query execution.
 
