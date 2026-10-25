@@ -4,13 +4,13 @@ import { projectsApi } from '../api/projectsApi';
 import { tasksApi } from '../api/tasksApi';
 import { authApi } from '../api/authApi';
 import { useAuth } from '../context/AuthContext';
-import { 
-  Plus, 
-  FolderKanban, 
-  Edit3, 
-  Trash2, 
-  CheckCircle2, 
-  Clock, 
+import {
+  Plus,
+  FolderKanban,
+  Edit3,
+  Trash2,
+  CheckCircle2,
+  Clock,
   AlertTriangle,
   RefreshCw,
   Layers,
@@ -238,7 +238,7 @@ export default function ProjectsPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      
+
       {/* Page Header */}
       <div style={{
         display: 'flex',
@@ -265,9 +265,9 @@ export default function ProjectsPage() {
 
         <div>
           {isAdmin ? (
-            <button 
-              type="button" 
-              onClick={handleOpenCreateModal} 
+            <button
+              type="button"
+              onClick={handleOpenCreateModal}
               className="btn-pro-primary"
             >
               <Plus size={16} strokeWidth={2.5} />
@@ -333,9 +333,9 @@ export default function ProjectsPage() {
             </p>
           </div>
           {isAdmin && (
-            <button 
-              type="button" 
-              onClick={handleOpenCreateModal} 
+            <button
+              type="button"
+              onClick={handleOpenCreateModal}
               className="btn-pro-primary"
               style={{ marginTop: '8px' }}
             >
@@ -366,8 +366,8 @@ export default function ProjectsPage() {
             const projectAssignees = Array.from(assigneeMap.values());
 
             return (
-              <div 
-                key={proj.id} 
+              <div
+                key={proj.id}
                 className="pro-project-card"
                 onClick={() => handleOpenDetailModal(proj)}
                 role="button"
@@ -379,7 +379,7 @@ export default function ProjectsPage() {
                   }
                 }}
               >
-                
+
                 {/* Card Header with Monogram & Actions */}
                 <div>
                   <div className="project-card-header">
@@ -438,22 +438,22 @@ export default function ProjectsPage() {
                   <div style={{ marginBottom: '16px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', marginBottom: '8px' }}>
                       <span style={{ fontWeight: '700', color: 'var(--text-secondary)' }}>Progress</span>
-                      <span style={{ 
-                        fontWeight: '800', 
-                        color: proj.progress_percentage === 100 ? '#059669' : 'var(--primary)' 
+                      <span style={{
+                        fontWeight: '800',
+                        color: proj.progress_percentage === 100 ? '#059669' : 'var(--primary)'
                       }}>
                         {proj.progress_percentage}%
                       </span>
                     </div>
                     <div className="progress-bar-bg" style={{ height: '7px' }}>
-                      <div 
-                        className="progress-bar-fill" 
-                        style={{ 
+                      <div
+                        className="progress-bar-fill"
+                        style={{
                           width: `${proj.progress_percentage}%`,
-                          background: proj.progress_percentage === 100 
-                            ? 'linear-gradient(90deg, #10B981, #059669)' 
+                          background: proj.progress_percentage === 100
+                            ? 'linear-gradient(90deg, #10B981, #059669)'
                             : 'var(--primary-gradient)'
-                        }} 
+                        }}
                       />
                     </div>
                   </div>
@@ -484,13 +484,13 @@ export default function ProjectsPage() {
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       {projectAssignees.length > 0 ? (
-                        <div 
-                          className="pro-avatar-stack" 
+                        <div
+                          className="pro-avatar-stack"
                           title={`${projectAssignees.length} assigned member${projectAssignees.length > 1 ? 's' : ''}: ${projectAssignees.map((a) => a.name).join(', ')}`}
                         >
                           {projectAssignees.slice(0, 3).map((member) => (
-                            <div 
-                              key={member.id} 
+                            <div
+                              key={member.id}
                               className={`pro-avatar-stack-item tone-${getUserTheme(member.id, users)}`}
                               title={`${member.name} (${member.taskCount} task${member.taskCount > 1 ? 's' : ''})`}
                             >
@@ -498,7 +498,7 @@ export default function ProjectsPage() {
                             </div>
                           ))}
                           {projectAssignees.length > 3 && (
-                            <div 
+                            <div
                               className="pro-avatar-stack-item tone-neutral"
                               title={`+${projectAssignees.length - 3} more members`}
                             >
@@ -644,8 +644,8 @@ export default function ProjectsPage() {
           maxWidth="640px"
           title={
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div 
-                className={`project-monogram ${getProjectTheme(selectedDetailProject.id, projects)}`} 
+              <div
+                className={`project-monogram ${getProjectTheme(selectedDetailProject.id, projects)}`}
                 style={{ width: '32px', height: '32px', fontSize: '13px' }}
               >
                 {getMonogramLetter(selectedDetailProject.name)}
@@ -699,21 +699,21 @@ export default function ProjectsPage() {
                 </div>
                 <div className="proj-detail-stat-lbl" style={{ color: '#B45309' }}>To Do</div>
               </div>
-              <div 
-                className="proj-detail-stat-tile" 
-                style={{ 
-                  background: detailTasks.filter(isTaskOverdue).length > 0 ? '#FDE9ED' : '#F8FAFC', 
-                  borderColor: detailTasks.filter(isTaskOverdue).length > 0 ? '#FECDD3' : '#E2E8F0' 
+              <div
+                className="proj-detail-stat-tile"
+                style={{
+                  background: detailTasks.filter(isTaskOverdue).length > 0 ? '#FDE9ED' : '#F8FAFC',
+                  borderColor: detailTasks.filter(isTaskOverdue).length > 0 ? '#FECDD3' : '#E2E8F0'
                 }}
               >
-                <div 
-                  className="proj-detail-stat-num" 
+                <div
+                  className="proj-detail-stat-num"
                   style={{ color: detailTasks.filter(isTaskOverdue).length > 0 ? '#E11D48' : 'var(--text-muted)' }}
                 >
                   {detailTasks.filter(isTaskOverdue).length}
                 </div>
-                <div 
-                  className="proj-detail-stat-lbl" 
+                <div
+                  className="proj-detail-stat-lbl"
                   style={{ color: detailTasks.filter(isTaskOverdue).length > 0 ? '#BE123C' : 'var(--text-muted)' }}
                 >
                   Overdue
@@ -721,7 +721,7 @@ export default function ProjectsPage() {
               </div>
             </div>
 
-            {/* Team Members Working on This Project ("ete k k kaaj korteche") */}
+            {/* Team Members Working on This Project */}
             <div>
               <div className="proj-modal-section-title">
                 <Users size={16} color="var(--primary)" />
@@ -765,8 +765,8 @@ export default function ProjectsPage() {
               ) : detailTasks.length > 0 ? (
                 <div className="proj-tasks-list">
                   {detailTasks.map((task) => (
-                    <div 
-                      key={task.id} 
+                    <div
+                      key={task.id}
                       className="proj-task-item"
                       onClick={() => {
                         setSelectedDetailProject(null);

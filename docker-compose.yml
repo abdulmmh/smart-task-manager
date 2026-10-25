@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_DB: ${DB_NAME:-bm_task_manager}
       POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgrespassword}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in the root .env file}
     ports:
       - "5432:5432"
     volumes:
@@ -38,9 +38,9 @@ services:
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-bm_task_manager}
       DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgrespassword}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in the root .env file}
       DB_SSL: "false"
-      JWT_SECRET: ${JWT_SECRET:-brightmind_super_secure_jwt_secret_key_2026}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in the root .env file}
       JWT_EXPIRES_IN: 7d
       CLIENT_URL: ${CLIENT_URL:-http://localhost:5173}
     depends_on:

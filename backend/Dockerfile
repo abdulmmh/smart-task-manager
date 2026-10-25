@@ -1,4 +1,4 @@
-# Multi-stage build for Node.js Express Backend
+# Node.js Express backend image
 FROM node:20-alpine AS runner
 
 WORKDIR /app

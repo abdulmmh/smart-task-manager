@@ -32,6 +32,13 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
+// Express 5 leaves req.body undefined when no body is sent; normalize it so
+// validators answer 400 instead of throwing a TypeError (500).
+app.use((req, res, next) => {
+  req.body = req.body ?? {};
+  next();
+});
+
 // Health check endpoint with real PostgreSQL connectivity verification
 app.get('/api/health', async (req, res) => {
   try {

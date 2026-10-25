@@ -271,16 +271,24 @@ The database migration seeds **7 users**, **3 realistic projects**, and **14 tas
 
 ---
 
-### 3. Docker Containerization Setup (Bonus Feature)
+### 3. Docker Containerization Setup 
 
-Spin up both PostgreSQL 16 and the Express REST API in Docker containers with a single command from the project root:
+Run PostgreSQL 16 and the Express API in containers from the project root. Secrets are never stored in the repository, so first create a git-ignored `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and set `DB_PASSWORD` and a random `JWT_SECRET` (32+ characters; the API refuses to start with the placeholder value). Then start everything:
 
 ```bash
 docker compose up --build
 ```
 
 - **`bm-postgres-db`**: PostgreSQL 16 Alpine container with automatic schema and seed initialization mounted via `/docker-entrypoint-initdb.d`.
-- **`bm-backend-api`**: Multi-stage Node.js 20 Alpine container listening on port `5000` with container health checks.
+- **`bm-backend-api`**: Node.js 20 Alpine container listening on port `5000`; it starts after the database health check passes.
+
+The frontend is not containerized; run it separately with `cd frontend && npm install && npm run dev`.
 
 ---
 
