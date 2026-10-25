@@ -863,11 +863,11 @@ body {
   gap: 16px;
 }
 
-/* Blue Gradient Hero Card */
+/* Blue Gradient Hero Card (Pending Tasks) */
 .pro-card-blue {
   background: var(--primary-gradient);
   border-radius: var(--radius-xl);
-  padding: 22px;
+  padding: 20px 22px;
   color: #FFFFFF;
   box-shadow: var(--shadow-blue-glow);
   position: relative;
@@ -875,14 +875,20 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 190px;
+  min-height: 185px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Midnight Slate Hero Card */
+.pro-card-blue:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 34px -6px rgba(37, 99, 235, 0.45);
+}
+
+/* Midnight Slate Hero Card (Completed Tasks) */
 .pro-card-dark {
   background: var(--dark-gradient);
   border-radius: var(--radius-xl);
-  padding: 22px;
+  padding: 20px 22px;
   color: #FFFFFF;
   box-shadow: var(--shadow-dark-glow);
   position: relative;
@@ -890,21 +896,122 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 190px;
+  min-height: 185px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pro-card-dark:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 34px -6px rgba(15, 23, 42, 0.4);
+}
+
+/* Deep Navy Hero Card (Total Projects) */
+.pro-card-navy {
+  background: linear-gradient(135deg, #0A1931 0%, #152A4A 100%);
+  border-radius: var(--radius-xl);
+  padding: 20px 22px;
+  color: #FFFFFF;
+  box-shadow: 0 12px 26px -6px rgba(10, 25, 49, 0.35);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 185px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pro-card-navy:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 34px -6px rgba(10, 25, 49, 0.5);
+}
+
+/* Royal Indigo/Purple Hero Card (Total Tasks) */
+.pro-card-purple {
+  background: linear-gradient(135deg, #4338CA 0%, #6366F1 100%);
+  border-radius: var(--radius-xl);
+  padding: 20px 22px;
+  color: #FFFFFF;
+  box-shadow: 0 12px 26px -6px rgba(79, 70, 229, 0.35);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 185px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pro-card-purple:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 34px -6px rgba(79, 70, 229, 0.45);
+}
+
+/* Emerald Green Hero Card (Completed Tasks) */
+.pro-card-emerald {
+  background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+  border-radius: var(--radius-xl);
+  padding: 20px 22px;
+  color: #FFFFFF;
+  box-shadow: 0 12px 26px -6px rgba(16, 185, 129, 0.35);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 185px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pro-card-emerald:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 34px -6px rgba(16, 185, 129, 0.45);
+}
+
+/* Crimson / Rose Alert Hero Card (Overdue Tasks) */
+.pro-card-rose {
+  background: linear-gradient(135deg, #B91C1C 0%, #EF4444 100%);
+  border-radius: var(--radius-xl);
+  padding: 20px 22px;
+  color: #FFFFFF;
+  box-shadow: 0 12px 26px -6px rgba(220, 38, 38, 0.35);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 185px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pro-card-rose:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 34px -6px rgba(220, 38, 38, 0.45);
+}
+
+.pro-card-rose.is-zero {
+  background: linear-gradient(135deg, #334155 0%, #475569 100%);
+  box-shadow: 0 12px 26px -6px rgba(51, 65, 85, 0.25);
 }
 
 /* White Gauge & Teams Card */
 .pro-card-white {
   background: #FFFFFF;
   border-radius: var(--radius-xl);
-  padding: 22px;
+  padding: 20px 22px;
   color: var(--text-primary);
   box-shadow: var(--shadow-card);
   border: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 190px;
+  min-height: 185px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pro-card-white:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
 }
 
 .pro-glass-tile {
@@ -937,6 +1044,14 @@ body {
   font-weight: 500;
   opacity: 0.88;
   margin-top: 4px;
+}
+
+.pro-hero-subtext {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.75;
+  margin-top: 3px;
+  letter-spacing: 0.2px;
 }
 
 /* Teams Member Avatar Stack */

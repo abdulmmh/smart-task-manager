@@ -322,18 +322,95 @@ export default function DashboardPage() {
 
             <div className="pro-hero-grid">
               
-              {/* Card 1: In progress Project (Vibrant Blue Card with Wave) */}
+              {/* Card 1: Total Projects (Deep Navy Gradient Card with Wave) */}
+              <div className="pro-card-navy">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="pro-glass-tile">
+                    <FolderKanban size={18} strokeWidth={2.4} />
+                  </div>
+                  <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', opacity: 0.9, textTransform: 'uppercase' }}>
+                    Projects
+                  </span>
+                </div>
+
+                <div className="pro-sparkline-box">
+                  <svg viewBox="0 0 140 40" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
+                    <defs>
+                      <linearGradient id="waveNavyGrad" x1="0" y1="0" x2="0" y2="40" gradientUnits="userSpaceOnUse">
+                        <stop stopColor="#ffffff" stopOpacity="0.25" />
+                        <stop offset="1" stopColor="#ffffff" stopOpacity="0.0" />
+                      </linearGradient>
+                    </defs>
+                    <path 
+                      d="M 0,24 C 20,24 35,10 60,18 C 85,26 95,8 115,14 C 128,18 135,12 140,16 L 140,40 L 0,40 Z" 
+                      fill="url(#waveNavyGrad)" 
+                    />
+                    <path 
+                      d="M 0,24 C 20,24 35,10 60,18 C 85,26 95,8 115,14 C 128,18 135,12 140,16" 
+                      stroke="#ffffff" 
+                      strokeWidth="2.5" 
+                      strokeLinecap="round" 
+                    />
+                  </svg>
+                </div>
+
+                <div>
+                  <div className="pro-hero-value">{metrics?.total_projects || 0}</div>
+                  <div className="pro-hero-label">Total Projects</div>
+                  <div className="pro-hero-subtext">Active initiatives</div>
+                </div>
+              </div>
+
+              {/* Card 2: Total Tasks (Royal Purple Gradient Card with Wave) */}
+              <div className="pro-card-purple">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="pro-glass-tile">
+                    <CheckSquare size={18} strokeWidth={2.4} />
+                  </div>
+                  <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', opacity: 0.9, textTransform: 'uppercase' }}>
+                    All Tasks
+                  </span>
+                </div>
+
+                <div className="pro-sparkline-box">
+                  <svg viewBox="0 0 140 40" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
+                    <defs>
+                      <linearGradient id="wavePurpleGrad" x1="0" y1="0" x2="0" y2="40" gradientUnits="userSpaceOnUse">
+                        <stop stopColor="#ffffff" stopOpacity="0.25" />
+                        <stop offset="1" stopColor="#ffffff" stopOpacity="0.0" />
+                      </linearGradient>
+                    </defs>
+                    <path 
+                      d="M 0,20 C 25,20 40,32 65,15 C 90,-2 105,22 122,12 C 130,7 135,14 140,10 L 140,40 L 0,40 Z" 
+                      fill="url(#wavePurpleGrad)" 
+                    />
+                    <path 
+                      d="M 0,20 C 25,20 40,32 65,15 C 90,-2 105,22 122,12 C 130,7 135,14 140,10" 
+                      stroke="#ffffff" 
+                      strokeWidth="2.5" 
+                      strokeLinecap="round" 
+                    />
+                  </svg>
+                </div>
+
+                <div>
+                  <div className="pro-hero-value">{metrics?.total_tasks || 0}</div>
+                  <div className="pro-hero-label">Total Tasks</div>
+                  <div className="pro-hero-subtext">Across all initiatives</div>
+                </div>
+              </div>
+
+              {/* Card 3: Pending Tasks (Vibrant Blue Card with Wave) */}
               <div className="pro-card-blue">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div className="pro-glass-tile">
                     <Clock size={18} strokeWidth={2.4} />
                   </div>
-                  <span style={{ fontSize: '11.5px', fontWeight: '700', letterSpacing: '0.5px', opacity: 0.85, textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', opacity: 0.9, textTransform: 'uppercase' }}>
                     Active
                   </span>
                 </div>
 
-                {/* Elegant Smooth Sparkline Wave */}
                 <div className="pro-sparkline-box">
                   <svg viewBox="0 0 140 40" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
                     <defs>
@@ -358,32 +435,32 @@ export default function DashboardPage() {
                 <div>
                   <div className="pro-hero-value">{metrics?.pending_tasks || 0}</div>
                   <div className="pro-hero-label">Pending Tasks</div>
+                  <div className="pro-hero-subtext">To Do & In Progress</div>
                 </div>
               </div>
 
-              {/* Card 2: Completed Project (Midnight Slate Card with Wave) */}
-              <div className="pro-card-dark">
+              {/* Card 4: Completed Tasks (Emerald Green Hero Card with Wave) */}
+              <div className="pro-card-emerald">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div className="pro-glass-tile">
-                    <CheckSquare size={18} strokeWidth={2.4} />
+                    <CheckCircle2 size={18} strokeWidth={2.4} />
                   </div>
-                  <span style={{ fontSize: '11.5px', fontWeight: '700', letterSpacing: '0.5px', opacity: 0.85, textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', opacity: 0.9, textTransform: 'uppercase' }}>
                     Done
                   </span>
                 </div>
 
-                {/* Elegant Smooth Sparkline Wave */}
                 <div className="pro-sparkline-box">
                   <svg viewBox="0 0 140 40" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
                     <defs>
-                      <linearGradient id="waveDarkGrad" x1="0" y1="0" x2="0" y2="40" gradientUnits="userSpaceOnUse">
-                        <stop stopColor="#ffffff" stopOpacity="0.22" />
+                      <linearGradient id="waveEmeraldGrad" x1="0" y1="0" x2="0" y2="40" gradientUnits="userSpaceOnUse">
+                        <stop stopColor="#ffffff" stopOpacity="0.25" />
                         <stop offset="1" stopColor="#ffffff" stopOpacity="0.0" />
                       </linearGradient>
                     </defs>
                     <path 
                       d="M 0,22 C 25,22 35,30 58,16 C 80,4 95,24 115,12 C 126,6 134,16 140,10 L 140,40 L 0,40 Z" 
-                      fill="url(#waveDarkGrad)" 
+                      fill="url(#waveEmeraldGrad)" 
                     />
                     <path 
                       d="M 0,22 C 25,22 35,30 58,16 C 80,4 95,24 115,12 C 126,6 134,16 140,10" 
@@ -397,15 +474,60 @@ export default function DashboardPage() {
                 <div>
                   <div className="pro-hero-value">{metrics?.completed_tasks || 0}</div>
                   <div className="pro-hero-label">Completed Tasks</div>
+                  <div className="pro-hero-subtext">{metrics?.completion_rate || 0}% resolution rate</div>
                 </div>
               </div>
 
-              {/* Card 3: Teams Member & Working time (Clean White Card) */}
+              {/* Card 5: Overdue Tasks (Crimson / Rose Alert Card with Wave) */}
+              <div className={`pro-card-rose ${(metrics?.overdue_tasks || 0) === 0 ? 'is-zero' : ''}`}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="pro-glass-tile">
+                    <AlertCircle size={18} strokeWidth={2.4} />
+                  </div>
+                  <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', opacity: 0.95, textTransform: 'uppercase' }}>
+                    {(metrics?.overdue_tasks || 0) > 0 ? 'Attention' : 'On Track'}
+                  </span>
+                </div>
+
+                <div className="pro-sparkline-box">
+                  <svg viewBox="0 0 140 40" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
+                    <defs>
+                      <linearGradient id="waveRoseGrad" x1="0" y1="0" x2="0" y2="40" gradientUnits="userSpaceOnUse">
+                        <stop stopColor="#ffffff" stopOpacity="0.25" />
+                        <stop offset="1" stopColor="#ffffff" stopOpacity="0.0" />
+                      </linearGradient>
+                    </defs>
+                    <path 
+                      d="M 0,25 C 20,25 35,12 60,20 C 85,28 95,10 115,16 C 128,20 135,14 140,18 L 140,40 L 0,40 Z" 
+                      fill="url(#waveRoseGrad)" 
+                    />
+                    <path 
+                      d="M 0,25 C 20,25 35,12 60,20 C 85,28 95,10 115,16 C 128,20 135,14 140,18" 
+                      stroke="#ffffff" 
+                      strokeWidth="2.5" 
+                      strokeLinecap="round" 
+                    />
+                  </svg>
+                </div>
+
+                <div>
+                  <div className="pro-hero-value">{metrics?.overdue_tasks || 0}</div>
+                  <div className="pro-hero-label">Overdue Tasks</div>
+                  <div className="pro-hero-subtext">
+                    {(metrics?.overdue_tasks || 0) > 0 ? 'Requires attention' : 'All deadlines on track'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 6: Teams Member & Velocity (Clean White Card - Positioned Last) */}
               <div className="pro-card-white">
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '12.5px', fontWeight: '700', color: 'var(--text-muted)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)' }}>
                       Teams Member
+                    </span>
+                    <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', backgroundColor: 'var(--primary-light)', padding: '2px 7px', borderRadius: '6px' }}>
+                      {users.length} Active
                     </span>
                   </div>
 
@@ -427,7 +549,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Donut Progress Gauge */}
-                <div className="gauge-wrapper">
+                <div className="gauge-wrapper" style={{ marginTop: '6px' }}>
                   <svg className="donut-gauge" viewBox="0 0 54 54">
                     <circle className="donut-bg" cx="27" cy="27" r="21" />
                     <circle 
