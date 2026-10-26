@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { projectsApi } from '../api/projectsApi';
 import { tasksApi } from '../api/tasksApi';
-import { authApi } from '../api/authApi';
 import { useAuth } from '../context/AuthContext';
 import {
   Plus,
@@ -21,14 +20,14 @@ import {
 } from 'lucide-react';
 import Modal from '../components/common/Modal';
 import Badge from '../components/common/Badge';
-import { getProjectTheme, getUserTheme } from '../utils/projectTheme';
+import { getProjectTheme } from '../utils/projectTheme';
+import { getAvatarTone } from '../utils/avatarUtils';
 
 export default function ProjectsPage() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
-  const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -52,14 +51,12 @@ export default function ProjectsPage() {
   const fetchProjects = useCallback(async () => {
     setError('');
     try {
-      const [projData, tasksData, usersData] = await Promise.all([
+      const [projData, tasksData] = await Promise.all([
         projectsApi.getProjects(),
         tasksApi.getTasks().catch(() => ({ tasks: [] })),
-        authApi.getUsers().catch(() => ({ users: [] })),
       ]);
       setProjects(projData.projects || []);
       setTasks(tasksData.tasks || []);
-      setUsers(usersData.users || []);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load projects.');
     } finally {
@@ -72,13 +69,11 @@ export default function ProjectsPage() {
     Promise.all([
       projectsApi.getProjects(),
       tasksApi.getTasks().catch(() => ({ tasks: [] })),
-      authApi.getUsers().catch(() => ({ users: [] })),
     ])
-      .then(([projData, tasksData, usersData]) => {
+      .then(([projData, tasksData]) => {
         if (isMounted) {
           setProjects(projData.projects || []);
           setTasks(tasksData.tasks || []);
-          setUsers(usersData.users || []);
           setIsLoading(false);
         }
       })
@@ -491,7 +486,7 @@ export default function ProjectsPage() {
                           {projectAssignees.slice(0, 3).map((member) => (
                             <div
                               key={member.id}
-                              className={`pro-avatar-stack-item tone-${getUserTheme(member.id, users)}`}
+                              className={`pro-avatar-stack-item tone-${getAvatarTone(member.name)}`}
                               title={`${member.name} (${member.taskCount} task${member.taskCount > 1 ? 's' : ''})`}
                             >
                               {getInitials(member.name)}
@@ -731,7 +726,7 @@ export default function ProjectsPage() {
                 <div className="proj-team-grid">
                   {detailAssignees.map((member) => (
                     <div key={member.id} className="proj-team-card">
-                      <div className={`user-avatar-circle tone-${getUserTheme(member.id, users)}`}>
+                      <div className={`user-avatar-circle tone-${getAvatarTone(member.name)}`}>
                         {getInitials(member.name)}
                       </div>
                       <div className="proj-team-info">

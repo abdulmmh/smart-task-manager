@@ -14,6 +14,7 @@ export default function Layout() {
     if (pathname.startsWith('/dashboard')) return 'Dashboard';
     if (pathname.startsWith('/projects')) return 'Projects';
     if (pathname.startsWith('/tasks')) return 'Tasks & Workflow';
+    if (pathname.startsWith('/profile')) return 'My Profile';
     return 'Workspace';
   };
 

@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Search, Bell, LogOut, Menu } from 'lucide-react';
+import { Search, Bell, LogOut, Menu, User, KeyRound, ChevronDown } from 'lucide-react';
 import { tasksApi } from '../../api/tasksApi';
 import { computeNotifications } from '../../utils/notificationHelper';
-import { getUserTheme } from '../../utils/projectTheme';
+import { getAvatarTone, getInitials } from '../../utils/avatarUtils';
 import NotificationDropdown from './NotificationDropdown';
 
 export default function Navbar({ title = 'Dashboard', onToggleSidebar }) {
@@ -14,6 +14,8 @@ export default function Navbar({ title = 'Dashboard', onToggleSidebar }) {
   const [tasks, setTasks] = useState([]);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const notifRef = useRef(null);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileRef = useRef(null);
 
   // Storage key scoped to current user so admin and members don't share read state
   const currentUserId = user?.id || 'guest';
@@ -40,15 +42,7 @@ export default function Navbar({ title = 'Dashboard', onToggleSidebar }) {
     }
   }
 
-  const getInitials = (name) => {
-    if (!name) return 'U';
-    return name
-      .split(' ')
-      .map((part) => part[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
-  };
+
 
   const handleSearchKeyDown = (e) => {
     if (e.key === 'Enter' && searchValue.trim()) {
@@ -117,9 +111,12 @@ export default function Navbar({ title = 'Dashboard', onToggleSidebar }) {
       if (notifRef.current && !notifRef.current.contains(e.target)) {
         setIsNotifOpen(false);
       }
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setIsProfileMenuOpen(false);
+      }
     };
 
-    if (isNotifOpen) {
+    if (isNotifOpen || isProfileMenuOpen) {
       document.addEventListener('mousedown', handleOutsideClick);
       document.addEventListener('touchstart', handleOutsideClick);
     }
@@ -127,7 +124,7 @@ export default function Navbar({ title = 'Dashboard', onToggleSidebar }) {
       document.removeEventListener('mousedown', handleOutsideClick);
       document.removeEventListener('touchstart', handleOutsideClick);
     };
-  }, [isNotifOpen]);
+  }, [isNotifOpen, isProfileMenuOpen]);
 
   const handleSelectNotification = (item) => {
     markItemAsRead(item.id);
@@ -213,17 +210,93 @@ export default function Navbar({ title = 'Dashboard', onToggleSidebar }) {
         </div>
 
         {user && (
-          <div className="user-profile-chip">
-            <div className={`user-avatar-circle tone-${getUserTheme(user.id)}`}>
-              {getInitials(user.name)}
-            </div>
-            <div className="user-details">
-              <span className="user-details-name">{user.name}</span>
-              <span className="user-details-role">
-                {user.role === 'admin' ? 'Lead Admin' : 'Team Member'}
-              </span>
-            </div>
-          </div>
+          <div className="profile-wrapper" ref={profileRef}>
+            <button
+              type="button"
+              className={`user-profile-chip ${isProfileMenuOpen ? 'active' : ''}`}
+              onClick={() => {
+                setIsNotifOpen(false);
+                setIsProfileMenuOpen((prev) => !prev);
+              }}
+              aria-expanded={isProfileMenuOpen}
+              aria-label="User profile and settings"
+            >
+              <div className={`user-avatar-circle tone-${getAvatarTone(user.name)}`}>
+                {getInitials(user.name)}
+              </div>
+              <div className="user-details">
+                <span className="user-details-name">{user.name}</span>
+                <span className="user-details-role">
+                  {user.role === 'admin' ? 'Lead Admin' : 'Team Member'}
+                </span>
+              </div>
+              <ChevronDown size={14} className={`profile-chevron ${isProfileMenuOpen ? 'rotated' : ''}`} />
+            </button>
+
+            {isProfileMenuOpen && (
+              <>
+                <div 
+                  className="profile-mobile-backdrop" 
+                  onClick={() => setIsProfileMenuOpen(false)} 
+                  aria-hidden="true" 
+                />
+                <div className="profile-dropdown-menu">
+                <div className="profile-dropdown-header">
+                  <div className={`profile-dropdown-avatar tone-${getAvatarTone(user.name)}`}>
+                    {getInitials(user.name)}
+                  </div>
+                  <div className="profile-dropdown-info">
+                    <span className="profile-dropdown-name">{user.name}</span>
+                    <span className="profile-dropdown-email">{user.email}</span>
+                    <span className="profile-dropdown-badge">
+                      {user.role === 'admin' ? 'Administrator' : 'Team Member'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="profile-dropdown-actions">
+                  <button
+                    type="button"
+                    className="profile-dropdown-item"
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      navigate('/profile');
+                    }}
+                  >
+                    <User size={16} />
+                    <span>View Profile</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="profile-dropdown-item"
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      navigate('/profile?tab=security');
+                    }}
+                  >
+                    <KeyRound size={16} />
+                    <span>Change Password</span>
+                  </button>
+
+                  <div className="profile-dropdown-divider" />
+
+                  <button
+                    type="button"
+                    className="profile-dropdown-item danger"
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      logout();
+                    }}
+                  >
+                    <LogOut size={16} />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
         )}
 
         <button 

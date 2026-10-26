@@ -4,11 +4,23 @@ import { authApi } from '../api/authApi';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('bm_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
   const [token, setToken] = useState(localStorage.getItem('bm_token') || null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => {
+    const storedToken = localStorage.getItem('bm_token');
+    const storedUser = localStorage.getItem('bm_user');
+    // If user and token already exist in localStorage, load instantly without blocking!
+    return !(storedToken && storedUser);
+  });
 
-  // Rehydrate authentication state on page load or refresh
+  // Rehydrate and verify authentication state in the background
   useEffect(() => {
     async function verifyAuth() {
       const storedToken = localStorage.getItem('bm_token');
@@ -20,6 +32,7 @@ export function AuthProvider({ children }) {
       try {
         const response = await authApi.getMe();
         setUser(response.user);
+        localStorage.setItem('bm_user', JSON.stringify(response.user));
       } catch (error) {
         console.error('[AuthContext] Session expired or invalid token:', error.message);
         localStorage.removeItem('bm_token');
@@ -59,6 +72,12 @@ export function AuthProvider({ children }) {
     setToken(null);
   };
 
+  const updateUser = (userData) => {
+    const updated = { ...user, ...userData };
+    localStorage.setItem('bm_user', JSON.stringify(updated));
+    setUser(updated);
+  };
+
   const value = {
     user,
     token,
@@ -68,6 +87,7 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

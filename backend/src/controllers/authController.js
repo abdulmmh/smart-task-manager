@@ -117,9 +117,87 @@ async function getAllUsers(req, res, next) {
   }
 }
 
+/**
+ * Change authenticated user's password
+ */
+async function changePassword(req, res, next) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    // Fetch password hash from DB
+    const userResult = await query(
+      'SELECT id, password_hash FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Current password is incorrect.' });
+    }
+
+    // Check if new password is identical to old password
+    if (currentPassword === newPassword) {
+      return res.status(400).json({ error: 'New password cannot be the same as the current password.' });
+    }
+
+    // Hash new password
+    const saltRounds = 10;
+    const newHash = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update password in DB
+    await query(
+      'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2',
+      [newHash, userId]
+    );
+
+    res.json({ message: 'Password updated successfully.' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Update authenticated user's profile details (e.g. name)
+ */
+async function updateProfile(req, res, next) {
+  try {
+    const { name } = req.body;
+    const userId = req.user.id;
+
+    const result = await query(
+      `UPDATE users
+       SET name = $1, updated_at = NOW()
+       WHERE id = $2
+       RETURNING id, name, email, role, created_at, updated_at`,
+      [name.trim(), userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    res.json({
+      message: 'Profile updated successfully.',
+      user: result.rows[0],
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   register,
   login,
   getMe,
   getAllUsers,
+  changePassword,
+  updateProfile,
 };

@@ -20,4 +20,15 @@ export const authApi = {
     const response = await client.get('/auth/users');
     return response.data;
   },
+
+  changePassword: async (currentPassword, newPassword) => {
+    const response = await client.put('/auth/change-password', { currentPassword, newPassword });
+    return response.data;
+  },
+
+  updateProfile: async (name) => {
+    const response = await client.put('/auth/profile', { name });
+    return response.data;
+  },
 };
+

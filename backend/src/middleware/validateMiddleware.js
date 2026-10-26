@@ -156,10 +156,44 @@ function validateTask(req, res, next) {
   next();
 }
 
+function validateChangePassword(req, res, next) {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || typeof currentPassword !== 'string' || currentPassword.length === 0) {
+    return res.status(400).json({ error: 'Current password is required.' });
+  }
+
+  if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
+    return res.status(400).json({ error: 'New password must be at least 8 characters long.' });
+  }
+
+  if (newPassword.length > 128) {
+    return res.status(400).json({ error: 'New password cannot exceed 128 characters.' });
+  }
+
+  next();
+}
+
+function validateUpdateProfile(req, res, next) {
+  const { name } = req.body;
+
+  if (!name || typeof name !== 'string' || name.trim().length === 0) {
+    return res.status(400).json({ error: 'Name is required and cannot be empty.' });
+  }
+
+  if (name.trim().length > 100) {
+    return res.status(400).json({ error: 'Name cannot exceed 100 characters.' });
+  }
+
+  next();
+}
+
 module.exports = {
   isValidDate,
   validateRegister,
   validateLogin,
   validateProject,
   validateTask,
+  validateChangePassword,
+  validateUpdateProfile,
 };

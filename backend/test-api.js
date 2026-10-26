@@ -110,6 +110,95 @@ describe('2. Authentication & Authorization Security', () => {
     // Clean up created user
     await query('DELETE FROM users WHERE email = $1', [testEmail]);
   });
+
+  test('Change password rejects invalid current password and accepts valid change', async () => {
+    const testEmail = `pwd.test.${Date.now()}@brightmind.com`;
+    // Register temporary user
+    const regRes = await fetch(`${baseUrl}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Password Tester',
+        email: testEmail,
+        password: 'initialPassword123',
+      }),
+    });
+    assert.strictEqual(regRes.status, 201);
+    const { token } = await regRes.json();
+
+    // Try wrong current password
+    const wrongRes = await fetch(`${baseUrl}/auth/change-password`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        currentPassword: 'wrongPassword123',
+        newPassword: 'newValidPassword456',
+      }),
+    });
+    assert.strictEqual(wrongRes.status, 400);
+    const wrongBody = await wrongRes.json();
+    assert.strictEqual(wrongBody.error, 'Current password is incorrect.');
+
+    // Try too short new password
+    const shortRes = await fetch(`${baseUrl}/auth/change-password`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        currentPassword: 'initialPassword123',
+        newPassword: 'short',
+      }),
+    });
+    assert.strictEqual(shortRes.status, 400);
+
+    // Try valid password change
+    const validRes = await fetch(`${baseUrl}/auth/change-password`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        currentPassword: 'initialPassword123',
+        newPassword: 'newValidPassword456',
+      }),
+    });
+    assert.strictEqual(validRes.status, 200);
+
+    // Verify login with new password succeeds
+    const loginRes = await fetch(`${baseUrl}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: testEmail,
+        password: 'newValidPassword456',
+      }),
+    });
+    assert.strictEqual(loginRes.status, 200);
+
+    // Verify update profile name works
+    const profileRes = await fetch(`${baseUrl}/auth/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        name: 'Updated Name',
+      }),
+    });
+    assert.strictEqual(profileRes.status, 200);
+    const profileBody = await profileRes.json();
+    assert.strictEqual(profileBody.user.name, 'Updated Name');
+
+    // Clean up test user
+    await query('DELETE FROM users WHERE email = $1', [testEmail]);
+  });
 });
 
 describe('3. Strict Input Validation & Edge-Case Handling', () => {

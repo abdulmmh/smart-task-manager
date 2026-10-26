@@ -18,7 +18,8 @@ import {
 } from 'lucide-react';
 import Badge from '../components/common/Badge';
 import Modal from '../components/common/Modal';
-import { getProjectTheme, getUserTheme } from '../utils/projectTheme';
+import { getProjectTheme } from '../utils/projectTheme';
+import { getAvatarTone } from '../utils/avatarUtils';
 
 export default function TasksPage() {
   const { user, isAdmin } = useAuth();
@@ -521,7 +522,7 @@ export default function TasksPage() {
                 {/* Assignee */}
                 <div className="task-cell" data-label="Assignee">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                    <div className={`task-assignee-avatar tone-${getUserTheme(task.assignee_id, users)}`}>{getInitials(task.assignee_name)}</div>
+                    <div className={`task-assignee-avatar tone-${getAvatarTone(task.assignee_name)}`}>{getInitials(task.assignee_name)}</div>
                     <span className="task-assignee-name">
                       {task.assignee_name || <span style={{ color: 'var(--text-light)', fontStyle: 'italic', fontWeight: '400' }}>Unassigned</span>}
                     </span>

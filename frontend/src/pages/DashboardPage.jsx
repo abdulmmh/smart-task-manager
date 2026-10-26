@@ -22,7 +22,8 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import Badge from '../components/common/Badge';
-import { getProjectTheme, getUserTheme } from '../utils/projectTheme';
+import { getProjectTheme } from '../utils/projectTheme';
+import { getAvatarTone } from '../utils/avatarUtils';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -536,7 +537,7 @@ export default function DashboardPage() {
                     {users.slice(0, 4).map((u) => (
                       <div 
                         key={u.id} 
-                        className={`avatar-chip tone-${getUserTheme(u.id, users)}`}
+                        className={`avatar-chip tone-${getAvatarTone(u.name)}`}
                         title={`${u.name} (${u.role})`}
                       >
                         {getInitials(u.name)}
@@ -768,7 +769,7 @@ export default function DashboardPage() {
                   {(isAdmin ? adminProjectAssignees : (memberProject?.teamMembers || [user])).slice(0, 3).map((u) => (
                     <div 
                       key={u.id} 
-                      className={`avatar-chip tone-${getUserTheme(u.id, users)}`}
+                      className={`avatar-chip tone-${getAvatarTone(u.name)}`}
                       title={u.name}
                     >
                       {getInitials(u.name)}
@@ -853,7 +854,7 @@ export default function DashboardPage() {
                         {/* Admin sees assignee initials chip */}
                         {isAdmin && t.assignee_name && (
                           <div 
-                            className={`checklist-assignee-chip tone-${getUserTheme(t.assignee_id, users)}`}
+                            className={`checklist-assignee-chip tone-${getAvatarTone(t.assignee_name)}`}
                             title={`Assigned to: ${t.assignee_name}`}
                           >
                             {getInitials(t.assignee_name)}
