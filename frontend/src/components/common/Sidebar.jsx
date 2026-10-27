@@ -27,7 +27,7 @@ export default function Sidebar({ isOpen, onClose }) {
             <CheckCircle2 size={22} color="#FFFFFF" strokeWidth={2.5} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="sidebar-title">BrightMind</div>
+            <div className="sidebar-title">Bright Mind</div>
             <div className="sidebar-subtitle">Task & Project Hub</div>
           </div>
           <button 

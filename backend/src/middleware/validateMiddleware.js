@@ -61,9 +61,10 @@ function validateLogin(req, res, next) {
 }
 
 function validateProject(req, res, next) {
-  const { name, description } = req.body;
-  const hasName = 'name' in req.body;
-  const hasDescription = 'description' in req.body;
+  const body = req.body ?? {};
+  const { name, description } = body;
+  const hasName = Object.prototype.hasOwnProperty.call(body, 'name');
+  const hasDescription = Object.prototype.hasOwnProperty.call(body, 'description');
 
   if (req.method === 'POST' && (!name || typeof name !== 'string' || name.trim().length === 0)) {
     return res.status(400).json({ error: 'Project name is required and cannot be empty.' });

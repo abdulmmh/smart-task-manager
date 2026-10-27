@@ -152,7 +152,7 @@ export default function Navbar({ title = 'Dashboard', onToggleSidebar }) {
 
         <div className="topbar-title-box">
           <div className="topbar-breadcrumb">
-            <span className="breadcrumb-brand">BrightMind</span>
+            <span className="breadcrumb-brand">Bright Mind</span>
             <span className="breadcrumb-sep">/</span>
             <span className="breadcrumb-current">{title}</span>
           </div>

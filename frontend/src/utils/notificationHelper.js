@@ -1,5 +1,5 @@
 /**
- * Computes role-specific notifications for BrightMind workspace:
+ * Computes role-specific notifications for Bright Mind workspace:
  * - Admin: Overdue tasks across all projects and recently completed tasks.
  * - Member: Newly assigned tasks and upcoming deadlines within 1-2 days.
  */

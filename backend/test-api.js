@@ -538,6 +538,11 @@ describe('5. CRUD Operations & Clearing Fields to Null', () => {
         body: JSON.stringify(body),
       });
 
+    const emptyBodyRes = await fetch(`${baseUrl}/projects/${testProjectId}`, {
+      method: 'PUT',
+      headers: { Authorization: 'Bearer ' + adminToken },
+    });
+    assert.strictEqual(emptyBodyRes.status, 400, 'missing request body must be rejected');
     assert.strictEqual((await updateProject({})).status, 400, 'empty updates must be rejected');
     assert.strictEqual((await updateProject({ name: '   ' })).status, 400, 'blank names must be rejected');
     assert.strictEqual((await updateProject({ name: 'n'.repeat(151) })).status, 400, 'long names must be rejected');
