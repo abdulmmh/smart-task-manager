@@ -36,8 +36,11 @@ function validateRegister(req, res, next) {
     return res.status(400).json({ error: 'Password must be at least 8 characters long.' });
   }
 
-  if (password.length > 128) {
-    return res.status(400).json({ error: 'Password cannot exceed 128 characters.' });
+  // bcrypt only uses the first 72 BYTES; longer passwords would be silently truncated
+  if (Buffer.byteLength(password, 'utf8') > 72) {
+    return res.status(400).json({
+      error: 'Password is too long (maximum 72 bytes; non-English characters use more than one byte).',
+    });
   }
 
   next();
@@ -167,8 +170,11 @@ function validateChangePassword(req, res, next) {
     return res.status(400).json({ error: 'New password must be at least 8 characters long.' });
   }
 
-  if (newPassword.length > 128) {
-    return res.status(400).json({ error: 'New password cannot exceed 128 characters.' });
+    // bcrypt only uses the first 72 BYTES; longer passwords would be silently truncated
+  if (Buffer.byteLength(newPassword, 'utf8') > 72) {
+    return res.status(400).json({
+      error: 'New password is too long (maximum 72 bytes; non-English characters use more than one byte).',
+    });
   }
 
   next();

@@ -14,7 +14,7 @@ const poolConfig = {
 
 // Enable TLS/SSL when connecting to cloud-hosted databases (Neon, Render, Supabase)
 if (DB_SSL) {
-  poolConfig.ssl = { rejectUnauthorized: false };
+  poolConfig.ssl = { rejectUnauthorized: true };
 }
 
 const pool = new Pool(poolConfig);

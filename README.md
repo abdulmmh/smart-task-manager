@@ -15,7 +15,7 @@
 > - **Pre-Configured Demo Credentials**:
 >   - **Admin Access**: `alex.admin@brightmind.com` | `password123`
 >   - **Team Member Access**: `john.dev@brightmind.com` | `password123`
-> 
+>
 > *Tip: Hosted on Render Free Tier. If the backend is idle, the very first API request may take ~45–50 seconds for the instance to warm up.*
 
 An enterprise-grade, full-stack Task and Project Management platform developed for the **Bright Mind Ltd. Full-Stack Developer Assessment**. Designed with a performance-first PostgreSQL schema, secure JWT Role-Based Access Control (RBAC), atomic analytical metric queries, and an executive Midnight Navy UI with mobile-responsive navigation.
@@ -33,6 +33,8 @@ An enterprise-grade, full-stack Task and Project Management platform developed f
   - [Backend Setup & Database Migration](#1-backend-setup--database-migration)
   - [Frontend Setup](#2-frontend-setup)
 - [Running Automated Tests](#running-automated-tests)
+- [Deployment (Render + Neon)](#deployment-render--neon)
+- [Known Limitations](#known-limitations)
 - [API Reference Overview](#api-reference-overview)
 - [Project Structure](#project-structure)
 - [Assessment Deliverables](#assessment-deliverables)
@@ -45,21 +47,21 @@ An enterprise-grade, full-stack Task and Project Management platform developed f
 graph TD
     Client["React 19 SPA (Vite 8)"]
     Router["React Router v7"]
-    AuthCtx["Auth Context (JWT State)"]
+    AuthCtx["Auth Context (JWT State + Instant localStorage Hydration)"]
     Axios["Axios API Client (Bearer Interceptor)"]
-    
+
     API["Express 5.3 REST API (:5000)"]
     AuthMW["JWT & RBAC Middleware"]
     ValMW["Strict Validation Middleware"]
     ErrMW["Centralized Error Handler (Code Mapping)"]
-    
+
     DB[(PostgreSQL 16+ :5432)]
-    
+
     Client --> Router
     Router --> AuthCtx
     AuthCtx --> Axios
     Axios -->|HTTP + Bearer Token| API
-    
+
     API --> AuthMW
     AuthMW --> ValMW
     ValMW --> Controllers["Controllers (Auth, Projects, Tasks, Dashboard)"]
@@ -71,13 +73,17 @@ graph TD
 
 ## Key Features
 
-### 1. Robust Authentication & RBAC
+### 1. Robust Authentication, RBAC & User Profile Management
 - **Password Security**: Passwords hashed using `bcryptjs` (10 salt rounds).
 - **Session Tokens**: Stateless JSON Web Tokens (JWT) signed with HMAC-SHA256 and expiration.
+- **Instant Session Hydration**: On page refresh, `AuthContext` reads the cached user from `localStorage` immediately — eliminating any blocking spinner. A background `GET /auth/me` call silently revalidates the session with the server.
+- **Notification Center**: bell dropdown lists overdue and recently completed tasks (All / Urgent / Unread) with per-item read tracking.
+
 - **Role Enforcement**:
   - **`admin`**: Full administrative access — create/update/delete projects, assign tasks to any employee, manage task lifecycle, and view executive metrics.
   - **`member`**: Focused team access — view projects (read-only), view tasks, and independently update task completion status (`To Do` -> `In Progress` -> `Completed`) on their assigned work. Attempting to modify other fields returns a `403 Forbidden` error.
 - **Session Lifecycle**: Stateless client-side logout purging `localStorage` and React authentication state. Tokens expire automatically based on `JWT_EXPIRES_IN=7d`.
+- **User Profile Page** (`/profile`): Authenticated users can update their display name via `PUT /auth/profile` and change their account password via `PUT /auth/change-password` (verified against the bcrypt hash of their current password). A profile dropdown in the navbar provides quick access to both functions.
 
 ### 2. Project Portfolio Management
 - Real-time dynamic completion percentage computation (`COUNT(*) FILTER (WHERE status = 'Completed') / total * 100`).
@@ -90,12 +96,14 @@ graph TD
 - **Nullable Field Clearing**: Updating tasks with `due_date: null` or `description: null` explicitly clears the database record using SQL `CASE WHEN` logic.
 
 ### 4. Executive Dashboard & Metrics
-- **Zero N+1 Roundtrips**: Core KPI metrics aggregated in a single atomic database query using SQL conditional filtering (`total_projects`, `total_tasks`, `completed_tasks`, `pending_tasks`, `overdue_tasks`, `high_priority_pending`, `completion_rate`). The dashboard endpoint executes 3 optimized queries total for the full payload (KPIs, overdue tasks, project distributions).
+- **Zero N+1 Roundtrips**: The KPI block uses one aggregation query, plus overdue alerts and project summaries, for 3 queries total.
 - **Overdue Task Tracking**: Dedicated alert banner and filter for tasks with past-due deadlines that are not yet completed, ordered by due date and ranked priority (`High` > `Medium` > `Low`).
 
 ### 5. Polished Executive UI & Responsive Design
-- Built on a **Deep Midnight Navy & Ice Slate** theme (`#0A1931` and `#F6FAFD`) designed for enterprise operational clarity.
+- Built on a clean **ice canvas** (`#F4F7FC`) with a **royal-blue primary** (`#2563EB`), slate-navy accents (`#0F172A`) and gradient KPI cards; green/amber/red are reserved for status.
 - Fixed `100vh` non-scrolling sidebar on desktop with independent scrollable tables, and a sliding drawer with hamburger menu on mobile devices (<=768px).
+- **Profile Dropdown Navbar**: Clicking the user avatar chip reveals a dropdown with quick links to View Profile, Change Password, and Sign Out.
+- **Profile Page**: Tabbed layout with "Personal Information" (display name editing) and "Password & Security" (password change with live strength meter and requirements checklist).
 - Debounced search input (~300ms) with stale-response cancellation and bidirectional URL parameter synchronization.
 - Dot-style semantic badges and quick demo-fill buttons for instant reviewer evaluation.
 
@@ -271,7 +279,7 @@ The database migration seeds **7 users**, **3 realistic projects**, and **14 tas
 
 ---
 
-### 3. Docker Containerization Setup 
+### 3. Docker Containerization Setup
 
 Run PostgreSQL 16 and the Express API in containers from the project root. Secrets are never stored in the repository, so first create a git-ignored `.env` file:
 
@@ -292,17 +300,34 @@ The frontend is not containerized; run it separately with `cd frontend && npm in
 
 ---
 
+## Deployment (Render + Neon)
+
+| Service | Settings |
+|---|---|
+| API (Web Service, root `backend`) | Build `npm ci` · Start `node src/server.js` · Env: `NODE_ENV=production`, `DB_*` (Neon), `DB_SSL=true`, `JWT_SECRET` (random, 48+ bytes, never from the repo), `JWT_EXPIRES_IN=7d`, `CLIENT_URL=https://<frontend>.onrender.com` |
+| Frontend (Static Site, root `frontend`) | Build `npm ci && npm run build` · Publish `dist` · Env `VITE_API_URL=https://<api>.onrender.com/api` · Rewrite `/*` → `/index.html` |
+
+## Known Limitations
+
+- JWTs are stateless: tokens issued before a password change stay valid until they expire (7 days).
+- bcrypt uses only the first 72 bytes of a password.
+- The token lives in `localStorage` (React escapes output; no `dangerouslySetInnerHTML` is used).
+- The shared demo accounts are public; do not store real data in the live deployment.
+
+---
+
 ## Running Automated Tests
 
-The backend includes a comprehensive 29-assertion integration test suite built with Node's native test runner (`node:test`, `node:assert`). It starts an in-process HTTP server and tests actual network round-trips and database mutations.
+The backend includes a comprehensive 39-test integration suite built with Node's native test runner (`node:test`, `node:assert`). It starts an in-process HTTP server and tests actual network round-trips and database mutations.
 
 Run the test suite from the `backend/` directory:
 ```bash
 npm test
 ```
 
+
 ### Test Coverage Highlights:
-- **Authentication & Infrastructure**: Live `/health` database ping verification (200/503), valid login, bad password rejection (401), invalid/forged JWT rejection (401), missing token guard (401).
+- **Authentication & Infrastructure**: Live `/health` database ping verification (200 with `database: connected`), valid login, bad password rejection (401), invalid/forged JWT rejection (401), missing token guard (401).
 - **Privilege Escalation Prevention**: Registering with `role: "admin"` strictly creates a member account (201).
 - **Input Validation**: Rejection of invalid calendar dates like `"2026-02-31"` (400), non-ISO dates `"10/05/2026"` (400), whitespace titles (400), overlong titles >200 chars (400), empty string due dates (400), and null status/priority payloads (400).
 - **Role-Based Access Control (RBAC)**:
@@ -321,6 +346,9 @@ npm test
   - Cascading deletion: deleting a project deletes all associated child tasks.
 - **Filtering & Dashboard**: Multi-field query filtering with support for both `projectId`/`project_id` and `assigneeId`/`assignee_id`, overdue filter, and KPI metric aggregations.
 
+- **Startup Safety & Deployment Config**: production refuses to boot with a placeholder JWT secret or without `DB_PASSWORD`; development only warns; `docker-compose.yml` keeps PostgreSQL on `127.0.0.1`; the backend image runs as the unprivileged `node` user.
+- **Docs Sync**: `docs/API_DOCUMENTATION.md` must document exactly the routes the API exposes; the backend test suite fails if an endpoint is added or removed without updating the docs.
+- **Frontend (`cd frontend && npm test`)**: a network error or `503` (e.g. a Render cold start) keeps the cached login, while a `401` signs the user out.
 ---
 
 ## API Reference Overview
@@ -334,6 +362,8 @@ Base URL: `http://localhost:5000/api`
 | `POST` | `/auth/login` | Public | Authenticate user and receive JWT |
 | `GET` | `/auth/me` | Authenticated | Retrieve authenticated session profile |
 | `GET` | `/auth/users` | Authenticated | List all registered users for task assignment |
+| `PUT` | `/auth/profile` | Authenticated | Update authenticated user's display name |
+| `PUT` | `/auth/change-password` | Authenticated | Change authenticated user's account password |
 | `GET` | `/dashboard` | Authenticated | Retrieve system KPIs, overdue alerts, and progress |
 | `GET` | `/projects` | Authenticated | List all projects with computed task completion rates |
 | `GET` | `/projects/:id` | Authenticated | Get project details and all child tasks |
@@ -353,15 +383,17 @@ Base URL: `http://localhost:5000/api`
 ## Project Structure
 
 ```
-bm-task-manager/
+smart-task-manager/
 ├── backend/
+│   ├── Dockerfile               # Production image (non-root)
+│   ├── .dockerignore
 │   ├── src/
 │   │   ├── config/
 │   │   │   ├── env.js           # Centralized environment validator
 │   │   │   └── db.js            # PostgreSQL connection pool (pg.Pool)
 │   │   ├── controllers/
-│   │   │   ├── authController.js       # Authentication & user directory
-│   │   │   ├── dashboardController.js  # Atomic single-query KPI aggregations
+│   │   │   ├── authController.js       # Auth, user directory, profile & password update
+│   │   │   ├── dashboardController.js  # KPI block (1 query) + overdue alerts + project summaries (3 queries total)
 │   │   │   ├── projectController.js    # Projects CRUD with progress percentages
 │   │   │   └── taskController.js       # Tasks CRUD, RBAC, and clearing null fields
 │   │   ├── db/
@@ -377,16 +409,19 @@ bm-task-manager/
 │   │   └── server.js            # Server entrypoint with graceful shutdown
 │   ├── .env.example             # Documented template without committed secrets
 │   ├── package.json
-│   └── test-api.js              # 29-assertion Node.js native test suite
+│   └── test-api.js              # 39-test Node.js native test suite
 │
 ├── frontend/
+│   ├── public/_redirects        # SPA fallback (on Render add a rewrite rule in the dashboard)
 │   ├── src/
 │   │   ├── api/                 # Axios HTTP client with Bearer interceptor
-│   │   ├── components/common/   # Badge, Modal, Navbar, Sidebar (Drawer), Layout
-│   │   ├── context/             # AuthContext (JWT rehydration, login, logout)
-│   │   ├── pages/               # DashboardPage, ProjectsPage, TasksPage, LoginPage, RegisterPage
+│   │   ├── components/common/   # Badge, Modal, Navbar, NotificationDropdown, Sidebar, Layout
+│   │   │   └── NotificationDropdown.jsx
+│   │   ├── context/             # AuthContext (instant localStorage hydration, login, logout, updateUser)
+│   │   ├── pages/               # DashboardPage, ProjectsPage, TasksPage, LoginPage, RegisterPage, ProfilePage
 │   │   ├── routes/              # ProtectedRoute with role enforcement and redirect state
-│   │   ├── index.css            # Midnight Navy design system & responsive media queries
+│   │   ├── utils/               # Notification helpers, project theme utilities
+│   │   ├── index.css            # Design tokens (royal-blue primary, slate-navy accents) & responsive media queries
 │   │   └── main.jsx             # React 19 entrypoint
 │   ├── index.html               # Semantic HTML5 shell with descriptive title
 │   ├── eslint.config.js         # ESLint 10 configuration (0 errors, 0 warnings)
@@ -396,6 +431,8 @@ bm-task-manager/
 ├── docs/
 │   ├── API_DOCUMENTATION.md     # Complete REST API reference with real payloads
 │   └── AI_USAGE_REPORT.md       # Mandatory 1-page engineering reflection report
+├── docker-compose.yml           # Local PostgreSQL and API containers
+├── .env.example                 # Root environment template; no committed secrets
 ├── LICENSE                      # MIT License
 └── README.md
 ```

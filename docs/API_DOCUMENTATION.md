@@ -14,6 +14,8 @@ Comprehensive technical reference for the Smart Task & Project Management REST A
    - [User Login](#12-user-login)
    - [Get Current User Profile](#13-get-current-user-profile)
    - [List Team Members](#14-list-team-members)
+   - [Update User Profile](#15-update-user-profile)
+   - [Change Password](#16-change-password)
 2. [Project Management Endpoints](#2-project-management-endpoints)
    - [List All Projects](#21-list-all-projects)
    - [Get Project by ID](#22-get-project-by-id)
@@ -30,7 +32,7 @@ Comprehensive technical reference for the Smart Task & Project Management REST A
    - [Get Executive Dashboard Metrics](#41-get-executive-dashboard-metrics)
 5. [Standard Error Responses](#5-standard-error-responses)
 6. [Ready-to-Run cURL Commands](#6-ready-to-run-curl-commands)
-
+7. [Health Check (Monitoring)](#7-health-check-monitoring)
 ---
 
 ## 1. Authentication Endpoints
@@ -52,7 +54,7 @@ Creates a new user account with hashed password (`bcryptjs`, 10 rounds).
 *Validation & Security Rules*:
 - `name`: String, 1–100 characters (required).
 - `email`: Valid email format, maximum 255 characters (required, unique).
-- `password`: String, minimum 8 characters, maximum 128 characters (required).
+- `password`: String, minimum 8 characters, maximum 72 bytes (bcrypt limit) (required).
 - *Privilege Escalation Protection*: Any `role` sent in registration payload is ignored; new accounts always default to `"member"`.
 
 - **Success Response** (`201 Created`):
@@ -150,8 +152,78 @@ Returns all registered users for assignment dropdowns.
 
 ---
 
-### 1.5 Session Lifecycle & Client-Side Logout
-Authentication is powered by stateless JSON Web Tokens (JWT). Logout is executed client-side by purging the token from browser storage (`localStorage`) and React application state (`AuthContext`).
+### 1.5 Update User Profile
+Updates the authenticated user's display name.
+
+- **Method**: `PUT`
+- **Path**: `/auth/profile`
+- **Access**: Authenticated
+- **Request Body**:
+```json
+{
+  "name": "Alex Turner Jr."
+}
+```
+*Validation Rules*:
+- `name`: String, 1–100 characters (required).
+
+- **Success Response** (`200 OK`):
+```json
+{
+  "message": "Profile updated successfully.",
+  "user": {
+    "id": "11111111-1111-1111-1111-111111111111",
+    "name": "Alex Turner Jr.",
+    "email": "alex.admin@brightmind.com",
+    "role": "admin",
+    "created_at": "2026-10-23T10:00:00.000Z",
+    "updated_at": "2026-10-26T12:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 1.6 Change Password
+Changes the authenticated user's password after verifying the current password against the stored bcrypt hash.
+
+- **Method**: `PUT`
+- **Path**: `/auth/change-password`
+- **Access**: Authenticated
+- **Request Body**:
+```json
+{
+  "currentPassword": "password123",
+  "newPassword": "NewStr0ng!Pass"
+}
+```
+*Validation Rules*:
+- `currentPassword`: String, minimum 1 character (required).
+- `newPassword`: String, minimum 8 characters, maximum 72 bytes (bcrypt limit) (required).
+- `newPassword` must differ from `currentPassword`.
+
+- **Success Response** (`200 OK`):
+```json
+{
+  "message": "Password updated successfully."
+}
+```
+
+- **Error Response** (`400 Bad Request` — wrong current password):
+```json
+{
+  "error": "Current password is incorrect."
+}
+```
+
+---
+
+### 1.7 Session Lifecycle & Client-Side Logout
+Authentication is powered by stateless JSON Web Tokens (JWT).
+
+**Instant Session Hydration**: On page load or refresh, `AuthContext` reads the cached `user` object from `localStorage` immediately, eliminating any blocking spinner. A background `GET /auth/me` call silently revalidates the session and refreshes the stored user record.
+
+Logout is executed client-side by purging the token and user from `localStorage` and resetting React application state.
 
 > **Architectural Note**: In this stateless prototype, previously issued JWT tokens remain valid until their configured expiration timestamp (`JWT_EXPIRES_IN`). For strict zero-trust or banking environments requiring immediate server-side revocation upon logout, a distributed Redis token-blocklist or database-backed refresh-token rotation model can be incorporated.
 
@@ -285,6 +357,8 @@ Updates project name or description. Passing `description: null` clears the desc
     "id": "9a8b7c6d-5e4f-3a2b-1c0d-e9f8a7b6c5d4",
     "name": "Internal Developer Portal v2",
     "description": null,
+    "created_by": "11111111-1111-1111-1111-111111111111",
+    "created_at": "2026-10-23T10:00:00.000Z",
     "updated_at": "2026-10-23T10:05:00.000Z"
   }
 }
@@ -473,6 +547,8 @@ Modifies task fields with role-based operational permissions:
     "due_date": null,
     "project_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     "assignee_id": "33333333-3333-3333-3333-333333333333",
+        "created_by": "11111111-1111-1111-1111-111111111111",
+    "created_at": "2026-10-23T10:00:00.000Z",
     "updated_at": "2026-10-23T10:20:00.000Z"
   }
 }
@@ -613,4 +689,35 @@ curl -X POST http://localhost:5000/api/projects \
 # Deleting a project automatically cascades to delete all child tasks
 curl -X DELETE "http://localhost:5000/api/projects/<PROJECT_ID>" \
   -H "Authorization: Bearer $TOKEN"
+```
+
+
+---
+
+## 7. Health Check (Monitoring)
+
+Used by the frontend sidebar and by uptime monitors. It runs `SELECT 1` against PostgreSQL, so it reports whether the **database** is reachable, not just whether the API process is running.
+
+- **Method**: `GET`
+- **Path**: `/health`
+- **Access**: Public
+
+- **Success Response** (`200 OK`):
+```json
+{
+  "status": "OK",
+  "database": "connected",
+  "service": "Smart Task & Project Manager API",
+  "timestamp": "2026-10-27T05:33:15.119Z"
+}
+```
+
+- **Failure Response** (`503 Service Unavailable`, database unreachable):
+```json
+{
+  "status": "Degraded",
+  "database": "disconnected",
+  "error": "PostgreSQL database connectivity check failed.",
+  "timestamp": "2026-10-27T05:33:15.119Z"
+}
 ```

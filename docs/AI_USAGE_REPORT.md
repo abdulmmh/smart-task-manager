@@ -1,49 +1,26 @@
 # AI Usage & Engineering Reflection Report
+**Assessment**: Bright Mind Ltd. Full-Stack Developer Assessment · **Project**: Smart Task & Project Management System
 
-**Assessment**: Bright Mind Ltd. Full-Stack Developer Assessment  
-**Project**: Smart Task & Project Management System  
-**Deliverable**: Mandatory 1-Page AI Usage Report  
+## 1. Tools Used
+- **Antigravity AI Assistant**: pair-programming for scaffolding, SQL aggregation design, full-stack integration and the Profile/password features.
+- **Claude**: independent static code review, security audit and requirements check.
+- **`node:test`** and **`psql`**: 30 integration tests; constraint and cascade verification.
 
----
+## 2. Three Important Prompts
+1. *"Design a single PostgreSQL query that computes total projects, total/completed/pending/overdue tasks in one round-trip, without application loops or N+1."* → `COUNT(*) FILTER (WHERE …)` aggregates.
+2. *"Admins have full CRUD; members may only update the status of tasks assigned to them and get 403 for any other field."* → key inspection in `taskController.updateTask`.
+3. *"Implement PUT /auth/change-password: verify the current password against the bcrypt hash, reject identical passwords, return clear 400 errors."* → reuses the login bcrypt compare.
 
-### 1. Tools & Workflow
-- **Antigravity AI Assistant**: Utilized as a pair-programming partner for architectural scaffolding, SQL aggregation design, and full-stack integration.
-- **Claude AI**: Utilized for independent static code review, security auditing, and assessment requirements verification.
-- **Node.js Native Test Runner (`node:test`, `node:assert`)**: Used to construct a 29-assertion integration test suite verifying authorization, RBAC boundaries, schema cascades, and validation edge cases.
-- **PostgreSQL Native Engine (`psql`)**: Used to validate schema constraints, foreign key cascades (`ON DELETE CASCADE`, `ON DELETE SET NULL`), and query execution.
+## 3. Problem Solved with AI: N+1 on the project list
+Each project card needs completion %, task and pending counts. A naive loop runs one `COUNT(*)` per project. One `LEFT JOIN … GROUP BY` with `COUNT(*) FILTER (…)` returns every metric in a single round-trip.
 
----
+## 4. Incorrect or Incomplete AI Suggestions and How They Were Fixed
+- **Hard-coded JWT fallback secrets** in the controller and middleware allowed token forging with a public default. Fix: fallbacks removed, one `config/env.js`; the server refuses to start without `JWT_SECRET`, rejects placeholder/short secrets in production and warns in development.
+- **`COALESCE($n, due_date)` could not clear a field**: `null` meant "keep", so the API returned 200 and changed nothing. Found during AI-assisted review and reproduced with API probes. Fix: `due_date = CASE WHEN $flag::boolean THEN $val::date ELSE due_date END`, plus regression tests.
+- **`!isNaN(new Date(s))` date check** let `2026-02-31` reach PostgreSQL (500). Fix: strict `YYYY-MM-DD` regex plus a calendar round-trip check.
 
-### 2. Critical Prompts & Engineering Context
-
-#### Prompt 1: Single-Query Dashboard Aggregation
-> *"Design a single atomic PostgreSQL query for the executive dashboard that computes total projects, total tasks, completed tasks, pending tasks, and overdue tasks in one round-trip without application-level looping or N+1 queries."*
-- **Context**: Standard ORM approaches generate 4 to 6 sequential queries. This prompt guided the implementation of PostgreSQL's native `FILTER (WHERE ...)` clause inside aggregate subqueries, executing all KPI calculations on the database engine in a single pass.
-
-#### Prompt 2: Strict RBAC with Payload Whitelisting
-> *"Implement Express authorization where admins have full CRUD permissions, while members can only update the status of tasks assigned to them and are forbidden with a 403 error from modifying title, description, priority, project, or assignee."*
-- **Context**: Ensuring separation of concerns. While members need autonomy to transition assigned tasks, allowing arbitrary field updates creates data corruption. Strict key inspection was enforced at the controller boundary.
-
-#### Prompt 3: Dynamic Seed Data Intervals
-> *"Write a seed script where overdue tasks are computed dynamically relative to CURRENT_DATE (e.g., CURRENT_DATE - INTERVAL '2 days') so overdue counters and assertions remain valid indefinitely."*
-- **Context**: Static calendar dates inevitably expire, causing test suites and dashboard alerts to break on future evaluation dates.
-
----
-
-### 3. Core Problem Solved with AI: Eliminating N+1 Query Overhead
-In portfolio management, each project requires real-time completion percentages and task counters. A naive implementation fetches all projects and executes a separate `COUNT(*)` query per project. Using SQL conditional aggregation with `LEFT JOIN` and `GROUP BY`, all project metrics and progress percentages are computed in a single database round-trip.
-
----
-
-### 4. Deficient AI Suggestions & How They Were Corrected
-1. **Insecure JWT Secret Fallbacks**: The initial AI scaffold scattered hardcoded fallback strings across multiple controller and middleware files, allowing token forging using public repository defaults. I eliminated all fallbacks, centralized config in `src/config/env.js`, and added startup validation rejecting placeholders and keys under 32 characters.
-2. **Silent Failure When Clearing Nullable Fields**: The AI originally scaffolded updates using `COALESCE($n, due_date)`. When clients sent `null` to clear a due date or description, `COALESCE` treated `null` as absent and retained the old value while returning `200 OK`. I identified this during manual API probing of field-clearing edge cases, subsequently authoring regression tests and refactoring the query to explicit boolean flags: `due_date = CASE WHEN $flag::boolean THEN $val::date ELSE due_date END`.
-3. **Permissive Date Parsing**: The AI suggested `!isNaN(new Date(s).getTime())` for date validation. This allowed non-existent calendar dates like `2026-02-31` to reach PostgreSQL, triggering unhandled 500 exceptions. I replaced it with strict ISO format and calendar day matching.
-
----
-
-### 5. Verification Methodology
-All AI-generated code was verified empirically:
-1. **Automated Integration Tests**: 29 tests covering 401/403/400/404 HTTP codes, RBAC rules, field clearing, and cascading deletes.
-2. **Database Verification**: Confirming check constraints and cascading foreign keys in PostgreSQL.
-3. **Static Analysis & Build**: Verified with ESLint (0 errors, 0 warnings) and production Vite build.
+## 5. Verification
+1. 30 automated tests (401/403/400/404, RBAC, field clearing, cascades).
+2. Constraint and cascade checks in `psql`.
+3. `npm run lint` and production `vite build`.
+4. Manual end-to-end test of profile update and password change with admin and member accounts.

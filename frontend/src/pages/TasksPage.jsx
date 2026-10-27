@@ -524,7 +524,7 @@ export default function TasksPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                     <div className={`task-assignee-avatar tone-${getAvatarTone(task.assignee_name)}`}>{getInitials(task.assignee_name)}</div>
                     <span className="task-assignee-name">
-                      {task.assignee_name || <span style={{ color: 'var(--text-light)', fontStyle: 'italic', fontWeight: '400' }}>Unassigned</span>}
+                      {task.assignee_name || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: '400' }}>Unassigned</span>}
                     </span>
                   </div>
                 </div>

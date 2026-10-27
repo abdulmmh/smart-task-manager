@@ -34,11 +34,16 @@ export function AuthProvider({ children }) {
         setUser(response.user);
         localStorage.setItem('bm_user', JSON.stringify(response.user));
       } catch (error) {
-        console.error('[AuthContext] Session expired or invalid token:', error.message);
-        localStorage.removeItem('bm_token');
-        localStorage.removeItem('bm_user');
-        setUser(null);
-        setToken(null);
+        // 401 = the token is really invalid (the axios interceptor has already cleared storage).
+        // Network errors, 5xx or a Render cold start must NOT sign the user out.
+        if (error.response?.status === 401) {
+          localStorage.removeItem('bm_token');
+          localStorage.removeItem('bm_user');
+          setUser(null);
+          setToken(null);
+        } else {
+          console.warn('[AuthContext] Could not revalidate session, keeping cached login:', error.message);
+        }
       } finally {
         setIsLoading(false);
       }

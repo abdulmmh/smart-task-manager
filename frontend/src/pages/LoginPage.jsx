@@ -26,8 +26,8 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       await login(email.trim(), password);
-      const from = location.state?.from?.pathname || '/dashboard';
-      navigate(from, { replace: true });
+      const f = location.state?.from;
+      navigate(f ? `${f.pathname}${f.search || ''}${f.hash || ''}` : '/dashboard', { replace: true });
     } catch (err) {
       setError(err.response?.data?.error || 'Invalid email or password.');
     } finally {

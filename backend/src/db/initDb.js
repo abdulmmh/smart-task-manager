@@ -14,7 +14,7 @@ async function ensureDatabaseExists() {
   };
 
   if (DB_SSL) {
-    adminClientConfig.ssl = { rejectUnauthorized: false };
+    adminClientConfig.ssl = { rejectUnauthorized: true };
   }
 
   const adminClient = new Client(adminClientConfig);
@@ -73,6 +73,8 @@ async function initializeDatabase() {
     const usersCount = await client.query('SELECT COUNT(*) FROM users');
     const projectsCount = await client.query('SELECT COUNT(*) FROM projects');
     const tasksCount = await client.query('SELECT COUNT(*) FROM tasks');
+    const rolesCount = await client.query('SELECT role, COUNT(*)::int AS n FROM users GROUP BY role');
+    const byRole = Object.fromEntries(rolesCount.rows.map((r) => [r.role, r.n]));
     const overdueCount = await client.query(
       "SELECT COUNT(*) FROM tasks WHERE due_date < CURRENT_DATE AND status != 'Completed'"
     );
@@ -80,7 +82,7 @@ async function initializeDatabase() {
     console.log('\n======================================================');
     console.log('   DATABASE INITIALIZATION REPORT');
     console.log('======================================================');
-    console.log(`- Users in Database:    ${usersCount.rows[0].count} (2 Admins, 5 Members)`);
+    console.log(`- Users in Database:    ${usersCount.rows[0].count} (${byRole.admin || 0} Admins, ${byRole.member || 0} Members)`);
     console.log(`- Projects in Database: ${projectsCount.rows[0].count}`);
     console.log(`- Tasks in Database:    ${tasksCount.rows[0].count}`);
     console.log(`- Overdue Tasks:        ${overdueCount.rows[0].count}`);

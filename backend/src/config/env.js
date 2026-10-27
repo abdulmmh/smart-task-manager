@@ -33,6 +33,11 @@ if (process.env.NODE_ENV === 'production') {
   );
 }
 
+// In production the database password must be supplied explicitly (no silent 'postgres' fallback)
+if (process.env.NODE_ENV === 'production' && !process.env.DB_PASSWORD) {
+  throw new Error('FATAL CONFIGURATION ERROR: DB_PASSWORD environment variable is required in production.');
+}
+
 module.exports = {
   PORT: parseInt(process.env.PORT, 10) || 5000,
   NODE_ENV: process.env.NODE_ENV || 'development',

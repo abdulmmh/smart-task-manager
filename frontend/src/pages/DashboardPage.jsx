@@ -329,7 +329,7 @@ export default function DashboardPage() {
                   <div className="pro-glass-tile">
                     <FolderKanban size={18} strokeWidth={2.4} />
                   </div>
-                  <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', opacity: 0.9, textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                     Projects
                   </span>
                 </div>
@@ -368,7 +368,7 @@ export default function DashboardPage() {
                   <div className="pro-glass-tile">
                     <CheckSquare size={18} strokeWidth={2.4} />
                   </div>
-                  <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', opacity: 0.9, textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                     All Tasks
                   </span>
                 </div>
@@ -407,7 +407,7 @@ export default function DashboardPage() {
                   <div className="pro-glass-tile">
                     <Clock size={18} strokeWidth={2.4} />
                   </div>
-                  <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', opacity: 0.9, textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                     Active
                   </span>
                 </div>
@@ -446,7 +446,7 @@ export default function DashboardPage() {
                   <div className="pro-glass-tile">
                     <CheckCircle2 size={18} strokeWidth={2.4} />
                   </div>
-                  <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', opacity: 0.9, textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                     Done
                   </span>
                 </div>
@@ -485,7 +485,7 @@ export default function DashboardPage() {
                   <div className="pro-glass-tile">
                     <AlertCircle size={18} strokeWidth={2.4} />
                   </div>
-                  <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', opacity: 0.95, textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                     {(metrics?.overdue_tasks || 0) > 0 ? 'Attention' : 'On Track'}
                   </span>
                 </div>

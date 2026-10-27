@@ -69,7 +69,7 @@ export default function NotificationDropdown({
             {unreadCount > 0 ? (
               <span className="notif-count-pill">{unreadCount} new</span>
             ) : (
-              <span style={{ fontSize: '11px', color: 'var(--text-light)', fontWeight: '600', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600', whiteSpace: 'nowrap' }}>
                 All caught up
               </span>
             )}

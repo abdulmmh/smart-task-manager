@@ -3,13 +3,15 @@ const assert = require('node:assert/strict');
 const http = require('node:http');
 const app = require('./src/app');
 const { pool, query } = require('./src/config/db');
+const { spawnSync } = require('node:child_process');
+const fs = require('node:fs');
+const path = require('node:path');
 
 let server;
 let baseUrl;
 let adminToken;
 let memberToken;
 let memberUserId = '33333333-3333-3333-3333-333333333333'; // John Smith (member)
-let otherMemberUserId = '44444444-4444-4444-4444-444444444444'; // Sarah Connor (member)
 let testProjectId;
 let testTaskId;
 
@@ -199,6 +201,37 @@ describe('2. Authentication & Authorization Security', () => {
     // Clean up test user
     await query('DELETE FROM users WHERE email = $1', [testEmail]);
   });
+
+
+  test('Profile update rejects invalid names and ignores role/email changes', async () => {
+    const email = `profile.${Date.now()}@example.com`;
+    const reg = await fetch(`${baseUrl}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Profile Tester', email, password: 'profilePass123' }),
+    });
+    const { token } = await reg.json();
+    const put = (body) =>
+      fetch(`${baseUrl}/auth/profile`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+      });
+
+    assert.strictEqual((await put({})).status, 400);
+    assert.strictEqual((await put({ name: '   ' })).status, 400);
+    assert.strictEqual((await put({ name: 'n'.repeat(101) })).status, 400);
+    assert.strictEqual((await put({ name: 42 })).status, 400);
+
+    const res = await put({ name: 'Renamed', role: 'admin', email: 'hacker@example.com' });
+    assert.strictEqual(res.status, 200);
+    const { user } = await res.json();
+    assert.strictEqual(user.name, 'Renamed');
+    assert.strictEqual(user.role, 'member');
+    assert.strictEqual(user.email, email);
+
+    await query('DELETE FROM users WHERE email = $1', [email]);
+  });
 });
 
 describe('3. Strict Input Validation & Edge-Case Handling', () => {
@@ -304,6 +337,21 @@ describe('3. Strict Input Validation & Edge-Case Handling', () => {
     assert.strictEqual(res.status, 400);
     const body = await res.json();
     assert.ok(body.error.toLowerCase().includes('priority'));
+  });
+
+  test('Password longer than 72 bytes is rejected (bcrypt limit)', async () => {
+    const res = await fetch(`${baseUrl}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Long Password',
+        email: `long.pw.${Date.now()}@example.com`,
+        password: 'a'.repeat(73),
+      }),
+    });
+    assert.strictEqual(res.status, 400);
+    const body = await res.json();
+    assert.ok(body.error.includes('72 bytes'));
   });
 });
 
@@ -471,6 +519,7 @@ describe('5. CRUD Operations & Clearing Fields to Null', () => {
     // Verify fields are now null in the returned record
     assert.strictEqual(updateBody.task.due_date, null, 'due_date must be cleared to null');
     assert.strictEqual(updateBody.task.description, null, 'description must be cleared to null');
+    assert.ok(updateBody.task.created_by && updateBody.task.created_at, 'update response must include created_by/created_at (documented)');
 
     // Cross-verify directly with database query
     const dbCheck = await query('SELECT due_date, description FROM tasks WHERE id = $1', [testTaskId]);
@@ -494,6 +543,7 @@ describe('5. CRUD Operations & Clearing Fields to Null', () => {
     const updateBody = await updateRes.json();
     assert.strictEqual(updateBody.project.name, 'Renamed Project by Admin');
     assert.strictEqual(updateBody.project.description, 'Updated Project Scope & Details');
+    assert.ok(updateBody.project.created_by && updateBody.project.created_at, 'update response must include created_by/created_at (documented)');
 
     // Verify directly in DB
     const dbCheck = await query('SELECT name, description FROM projects WHERE id = $1', [testProjectId]);
@@ -541,6 +591,79 @@ describe('6. Multi-Field Filtering, Query Aliases & Dashboard Analytics', () => 
     assert.ok(bodyCamel.tasks.length > 0);
   });
 
+  describe('7. Startup Safety & Deployment Configuration', () => {
+    // Loads config/env.js in a fresh process, so every scenario starts from a clean environment.
+    const loadEnv = (overrides) =>
+      spawnSync(process.execPath, ['-e', "require('./src/config/env')"], {
+        cwd: __dirname,
+        env: { ...process.env, ...overrides },
+        encoding: 'utf8',
+      });
+    const STRONG = 'x7Kp2mQ9vL4nR8sT1wY6zB3cD5fG0hJ2kM7pQ9rS';
+
+    test('Production refuses to start with a placeholder JWT secret', () => {
+      const r = loadEnv({ NODE_ENV: 'production', JWT_SECRET: 'replace_with_a_secure_random_secret_min_32_chars', DB_PASSWORD: 'x' });
+      assert.notStrictEqual(r.status, 0);
+      assert.ok(r.stderr.includes('Insecure JWT_SECRET'));
+    });
+
+    test('Production refuses to start without DB_PASSWORD', () => {
+      const r = loadEnv({ NODE_ENV: 'production', JWT_SECRET: STRONG, DB_PASSWORD: '' });
+      assert.notStrictEqual(r.status, 0);
+      assert.ok(r.stderr.includes('DB_PASSWORD'));
+    });
+
+    test('Production starts with a strong secret and an explicit DB password', () => {
+      const r = loadEnv({ NODE_ENV: 'production', JWT_SECRET: STRONG, DB_PASSWORD: 'x' });
+      assert.strictEqual(r.status, 0, r.stderr);
+    });
+
+    test('Development only warns about a placeholder JWT secret', () => {
+      const r = loadEnv({ NODE_ENV: 'development', JWT_SECRET: 'replace_with_a_secure_random_secret_min_32_chars' });
+      assert.strictEqual(r.status, 0, r.stderr);
+      assert.ok(r.stderr.includes('SECURITY WARNING'));
+    });
+
+    test('docker-compose.yml publishes PostgreSQL on localhost only and has no obsolete version key', () => {
+      const compose = fs.readFileSync(path.join(__dirname, '..', 'docker-compose.yml'), 'utf8');
+      assert.ok(compose.includes('"127.0.0.1:5432:5432"'));
+      assert.ok(!/^version:/m.test(compose));
+    });
+
+    test('backend Dockerfile runs as the unprivileged node user', () => {
+      const dockerfile = fs.readFileSync(path.join(__dirname, 'Dockerfile'), 'utf8');
+      assert.ok(/^USER node$/m.test(dockerfile));
+    });
+  });
+
+  describe('8. API Documentation Stays in Sync With the Code', () => {
+    test('docs/API_DOCUMENTATION.md documents every route the API exposes (and nothing else)', () => {
+      const appSrc = fs.readFileSync(path.join(__dirname, 'src', 'app.js'), 'utf8');
+      const routeModules = new Map(
+        [...appSrc.matchAll(/const\s+(\w+)\s*=\s*require\(['"]\.\/routes\/([^'"]+)['"]\);/g)]
+          .map(([, routerName, moduleName]) => [routerName, moduleName])
+      );
+
+      const exposed = new Set(['GET /api/health']);
+      for (const m of appSrc.matchAll(/app\.use\('([^']+)',\s*(\w+)\)/g)) {
+        const [, prefix, routerName] = m;
+        const moduleName = routeModules.get(routerName);
+        if (!moduleName) continue;
+
+        const src = fs.readFileSync(path.join(__dirname, 'src', 'routes', `${moduleName}.js`), 'utf8');
+        for (const m of src.matchAll(/router\.(get|post|put|delete|patch)\(\s*'([^']*)'/g)) {
+          exposed.add(`${m[1].toUpperCase()} ${prefix}${m[2] === '/' ? '' : m[2]}`);
+        }
+      }
+
+      const doc = fs.readFileSync(path.join(__dirname, '..', 'docs', 'API_DOCUMENTATION.md'), 'utf8');
+      const documented = new Set();
+      for (const m of doc.matchAll(/\*\*Method\*\*:\s*`(\w+)`\s*\n-\s*\*\*Path\*\*:\s*`([^`]+)`/g)) {
+        documented.add(`${m[1]} /api${m[2]}`);
+      }
+      assert.deepStrictEqual([...documented].sort(), [...exposed].sort());
+    });
+  });
   test('Task filters work with both assigneeId and assignee_id query parameters', async () => {
     const userId = '33333333-3333-3333-3333-333333333333';
 

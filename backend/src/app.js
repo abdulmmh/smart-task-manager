@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { CLIENT_URL } = require('./config/env');
 
 const authRoutes = require('./routes/authRoutes');
@@ -10,6 +12,9 @@ const { query } = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
+app.disable('x-powered-by');
+app.set('trust proxy', 1);
+app.use(helmet());
 
 // Global Middlewares
 const allowedOrigins = [
@@ -19,12 +24,7 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error(`Not allowed by CORS: ${origin}`));
-  },
+  origin: (origin, callback) => callback(null, !origin || allowedOrigins.includes(origin)),
   credentials: true,
 }));
 
@@ -49,6 +49,17 @@ app.use((req, res, next) => {
   req.body = req.body ?? {};
   next();
 });
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: process.env.NODE_ENV === 'production' ? 20 : 1000,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'Too many attempts. Please try again later.' },
+});
+
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
 
 // Health check endpoint with real PostgreSQL connectivity verification
 app.get('/api/health', async (req, res) => {
