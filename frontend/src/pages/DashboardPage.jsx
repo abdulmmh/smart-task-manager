@@ -24,10 +24,12 @@ import {
 import Badge from '../components/common/Badge';
 import { getProjectTheme } from '../utils/projectTheme';
 import { getAvatarTone } from '../utils/avatarUtils';
+import { useToast } from '../components/common/ToastContext';
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [data, setData] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -36,7 +38,6 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('active'); // 'active' or 'pending'
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [actionNotice, setActionNotice] = useState('');
 
   const getInitials = (name) => {
     if (!name) return 'U';
@@ -101,12 +102,19 @@ export default function DashboardPage() {
   const handleToggleTaskStatus = async (task) => {
     try {
       const nextStatus = task.status === 'Completed' ? 'In Progress' : 'Completed';
-      await tasksApi.updateTask(task.id, { status: nextStatus });
-      setActionNotice(`Task "${task.title}" updated to ${nextStatus}.`);
-      setTimeout(() => setActionNotice(''), 3000);
+      const result = await tasksApi.updateTask(task.id, { status: nextStatus });
+      showToast({
+        variant: 'success',
+        title: 'Task updated',
+        message: result.message || `Task "${task.title}" updated to ${nextStatus}.`,
+      });
       fetchAllData(false);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to update task.');
+      showToast({
+        variant: 'error',
+        title: 'Could not update task',
+        message: err.response?.data?.error || 'Failed to update task.',
+      });
     }
   };
 
@@ -287,24 +295,6 @@ export default function DashboardPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {actionNotice && (
-        <div style={{
-          backgroundColor: 'var(--success-bg)',
-          color: 'var(--success)',
-          border: '1px solid var(--success-border)',
-          padding: '10px 16px',
-          borderRadius: 'var(--radius-md)',
-          fontSize: '13px',
-          fontWeight: '600',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <Check size={16} />
-          <span>{actionNotice}</span>
-        </div>
-      )}
-
       {/* Main BrightMind 2-Column Dashboard Grid */}
       <div className="pro-dashboard-layout">
         

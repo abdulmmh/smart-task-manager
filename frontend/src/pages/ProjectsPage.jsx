@@ -22,10 +22,12 @@ import Modal from '../components/common/Modal';
 import Badge from '../components/common/Badge';
 import { getProjectTheme } from '../utils/projectTheme';
 import { getAvatarTone } from '../utils/avatarUtils';
+import { useToast } from '../components/common/ToastContext';
 
 export default function ProjectsPage() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
+  const { showToast } = useToast();
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -114,11 +116,17 @@ export default function ProjectsPage() {
 
     setIsSubmitting(true);
     try {
+      let result;
       if (modalMode === 'create') {
-        await projectsApi.createProject({ name: projectName.trim(), description: projectDesc.trim() });
+        result = await projectsApi.createProject({ name: projectName.trim(), description: projectDesc.trim() });
       } else {
-        await projectsApi.updateProject(currentProject.id, { name: projectName.trim(), description: projectDesc.trim() });
+        result = await projectsApi.updateProject(currentProject.id, { name: projectName.trim(), description: projectDesc.trim() });
       }
+      showToast({
+        variant: 'success',
+        title: modalMode === 'create' ? 'Project created' : 'Project updated',
+        message: result.message || `Project ${modalMode === 'create' ? 'created' : 'updated'} successfully.`,
+      });
       setIsModalOpen(false);
       fetchProjects();
     } catch (err) {
@@ -131,11 +139,20 @@ export default function ProjectsPage() {
   const handleDeleteProject = async () => {
     if (!deleteTarget) return;
     try {
-      await projectsApi.deleteProject(deleteTarget.id);
+      const result = await projectsApi.deleteProject(deleteTarget.id);
+      showToast({
+        variant: 'success',
+        title: 'Project deleted',
+        message: result.message || 'Project deleted successfully.',
+      });
       setDeleteTarget(null);
       fetchProjects();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete project.');
+      showToast({
+        variant: 'error',
+        title: 'Could not delete project',
+        message: err.response?.data?.error || 'Failed to delete project.',
+      });
     }
   };
 

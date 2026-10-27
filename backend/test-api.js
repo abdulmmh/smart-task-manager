@@ -528,6 +528,20 @@ describe('5. CRUD Operations & Clearing Fields to Null', () => {
   });
 
   test('Admin updates project name and description', async () => {
+    const updateProject = (body) =>
+      fetch(`${baseUrl}/projects/${testProjectId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + adminToken,
+        },
+        body: JSON.stringify(body),
+      });
+
+    assert.strictEqual((await updateProject({})).status, 400, 'empty updates must be rejected');
+    assert.strictEqual((await updateProject({ name: '   ' })).status, 400, 'blank names must be rejected');
+    assert.strictEqual((await updateProject({ name: 'n'.repeat(151) })).status, 400, 'long names must be rejected');
+
     const updateRes = await fetch(`${baseUrl}/projects/${testProjectId}`, {
       method: 'PUT',
       headers: {
@@ -549,6 +563,12 @@ describe('5. CRUD Operations & Clearing Fields to Null', () => {
     const dbCheck = await query('SELECT name, description FROM projects WHERE id = $1', [testProjectId]);
     assert.strictEqual(dbCheck.rows[0].name, 'Renamed Project by Admin');
     assert.strictEqual(dbCheck.rows[0].description, 'Updated Project Scope & Details');
+
+    const descriptionOnlyRes = await updateProject({ description: null });
+    assert.strictEqual(descriptionOnlyRes.status, 200, 'description-only updates must be accepted');
+    const descriptionOnlyBody = await descriptionOnlyRes.json();
+    assert.strictEqual(descriptionOnlyBody.project.name, 'Renamed Project by Admin');
+    assert.strictEqual(descriptionOnlyBody.project.description, null, 'null description must clear the field');
   });
 
   test('Cascading deletion: deleting project removes associated tasks', async () => {

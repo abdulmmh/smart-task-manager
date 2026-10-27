@@ -3,8 +3,8 @@
 
 ## 1. Tools Used
 - **Antigravity AI Assistant**: pair-programming for scaffolding, SQL aggregation design, full-stack integration and the Profile/password features.
-- **Claude**: independent static code review, security audit and requirements check.
-- **`node:test`** and **`psql`**: 30 integration tests; constraint and cascade verification.
+- **Claude & ChatGPT**: independent static code review, security audit and requirements check.
+- **`node:test`** and **`psql`**: 39 automated test cases covering API/database behavior, startup configuration, and documentation route sync; separate constraint and cascade verification with `psql`.
 
 ## 2. Three Important Prompts
 1. *"Design a single PostgreSQL query that computes total projects, total/completed/pending/overdue tasks in one round-trip, without application loops or N+1."* → `COUNT(*) FILTER (WHERE …)` aggregates.
@@ -20,7 +20,7 @@ Each project card needs completion %, task and pending counts. A naive loop runs
 - **`!isNaN(new Date(s))` date check** let `2026-02-31` reach PostgreSQL (500). Fix: strict `YYYY-MM-DD` regex plus a calendar round-trip check.
 
 ## 5. Verification
-1. 30 automated tests (401/403/400/404, RBAC, field clearing, cascades).
+1. 39 automated tests (401/403/400/404, RBAC, field clearing, cascades).
 2. Constraint and cascade checks in `psql`.
 3. `npm run lint` and production `vite build`.
 4. Manual end-to-end test of profile update and password change with admin and member accounts.

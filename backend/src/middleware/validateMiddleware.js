@@ -62,12 +62,22 @@ function validateLogin(req, res, next) {
 
 function validateProject(req, res, next) {
   const { name, description } = req.body;
+  const hasName = 'name' in req.body;
+  const hasDescription = 'description' in req.body;
 
-  if (!name || typeof name !== 'string' || name.trim().length === 0) {
+  if (req.method === 'POST' && (!name || typeof name !== 'string' || name.trim().length === 0)) {
     return res.status(400).json({ error: 'Project name is required and cannot be empty.' });
   }
 
-  if (name.trim().length > 150) {
+  if (req.method === 'PUT' && !hasName && !hasDescription) {
+    return res.status(400).json({ error: 'At least one project field is required.' });
+  }
+
+  if (hasName && (typeof name !== 'string' || name.trim().length === 0)) {
+    return res.status(400).json({ error: 'Project name is required and cannot be empty.' });
+  }
+
+  if (hasName && name.trim().length > 150) {
     return res.status(400).json({ error: 'Project name cannot exceed 150 characters.' });
   }
 

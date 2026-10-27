@@ -20,9 +20,11 @@ import Badge from '../components/common/Badge';
 import Modal from '../components/common/Modal';
 import { getProjectTheme } from '../utils/projectTheme';
 import { getAvatarTone } from '../utils/avatarUtils';
+import { useToast } from '../components/common/ToastContext';
 
 export default function TasksPage() {
   const { user, isAdmin } = useAuth();
+  const { showToast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [tasks, setTasks] = useState([]);
@@ -202,7 +204,12 @@ export default function TasksPage() {
     if (modalMode === 'status-only') {
       setIsSubmitting(true);
       try {
-        await tasksApi.updateTask(currentTask.id, { status: taskStatus });
+        const result = await tasksApi.updateTask(currentTask.id, { status: taskStatus });
+        showToast({
+          variant: 'success',
+          title: 'Task status updated',
+          message: result.message || 'Task status updated successfully.',
+        });
         setIsModalOpen(false);
         fetchTasks();
       } catch (err) {
@@ -235,12 +242,18 @@ export default function TasksPage() {
         assignee_id: taskAssigneeId || null,
       };
 
+      let result;
       if (modalMode === 'create') {
-        await tasksApi.createTask(payload);
+        result = await tasksApi.createTask(payload);
       } else {
-        await tasksApi.updateTask(currentTask.id, payload);
+        result = await tasksApi.updateTask(currentTask.id, payload);
       }
 
+      showToast({
+        variant: 'success',
+        title: modalMode === 'create' ? 'Task created' : 'Task updated',
+        message: result.message || `Task ${modalMode === 'create' ? 'created' : 'updated'} successfully.`,
+      });
       setIsModalOpen(false);
       fetchTasks();
     } catch (err) {
@@ -253,11 +266,20 @@ export default function TasksPage() {
   const handleDeleteTask = async () => {
     if (!deleteTarget) return;
     try {
-      await tasksApi.deleteTask(deleteTarget.id);
+      const result = await tasksApi.deleteTask(deleteTarget.id);
+      showToast({
+        variant: 'success',
+        title: 'Task deleted',
+        message: result.message || 'Task deleted successfully.',
+      });
       setDeleteTarget(null);
       fetchTasks();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete task.');
+      showToast({
+        variant: 'error',
+        title: 'Could not delete task',
+        message: err.response?.data?.error || 'Failed to delete task.',
+      });
     }
   };
 

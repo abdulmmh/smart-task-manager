@@ -18,9 +18,11 @@ import {
   Save,
   Loader2,
 } from 'lucide-react';
+import { useToast } from '../components/common/ToastContext';
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
+  const { showToast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // The URL is the source of truth for the active tab.
@@ -33,7 +35,6 @@ export default function ProfilePage() {
   // Profile edit state
   const [name, setName] = useState(user?.name || '');
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
-  const [profileSuccessMsg, setProfileSuccessMsg] = useState('');
   const [profileErrorMsg, setProfileErrorMsg] = useState('');
 
   // Password change state
@@ -44,7 +45,6 @@ export default function ProfilePage() {
   const [showNewPw, setShowNewPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
-  const [passwordSuccessMsg, setPasswordSuccessMsg] = useState('');
   const [passwordErrorMsg, setPasswordErrorMsg] = useState('');
 
   // User tasks stats
@@ -97,7 +97,6 @@ export default function ProfilePage() {
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
-    setProfileSuccessMsg('');
     setProfileErrorMsg('');
     if (!name.trim()) {
       setProfileErrorMsg('Full name cannot be empty.');
@@ -108,8 +107,11 @@ export default function ProfilePage() {
       const res = await authApi.updateProfile(name.trim());
       updateUser(res.user);
       setName(res.user.name);
-      setProfileSuccessMsg('Profile details successfully updated!');
-      setTimeout(() => setProfileSuccessMsg(''), 4000);
+      showToast({
+        variant: 'success',
+        title: 'Profile updated',
+        message: res.message || 'Profile details successfully updated.',
+      });
     } catch (err) {
       setProfileErrorMsg(err.response?.data?.error || 'Failed to update profile. Please try again.');
     } finally {
@@ -119,7 +121,6 @@ export default function ProfilePage() {
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
-    setPasswordSuccessMsg('');
     setPasswordErrorMsg('');
     if (!currentPassword) { setPasswordErrorMsg('Please enter your current password.'); return; }
     if (!newPassword || newPassword.length < 8) { setPasswordErrorMsg('New password must be at least 8 characters long.'); return; }
@@ -128,11 +129,14 @@ export default function ProfilePage() {
     try {
       setIsUpdatingPassword(true);
       const res = await authApi.changePassword(currentPassword, newPassword);
-      setPasswordSuccessMsg(res.message || 'Password changed successfully!');
+      showToast({
+        variant: 'success',
+        title: 'Password updated',
+        message: res.message || 'Password changed successfully.',
+      });
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setTimeout(() => setPasswordSuccessMsg(''), 5000);
     } catch (err) {
       setPasswordErrorMsg(err.response?.data?.error || 'Failed to update password. Please check your current password.');
     } finally {
@@ -254,12 +258,6 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {profileSuccessMsg && (
-              <div className="alert-box alert-success">
-                <CheckCircle2 size={16} />
-                <span>{profileSuccessMsg}</span>
-              </div>
-            )}
             {profileErrorMsg && (
               <div className="alert-box alert-danger">
                 <AlertCircle size={16} />
@@ -370,12 +368,6 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {passwordSuccessMsg && (
-              <div className="alert-box alert-success">
-                <CheckCircle2 size={16} />
-                <span>{passwordSuccessMsg}</span>
-              </div>
-            )}
             {passwordErrorMsg && (
               <div className="alert-box alert-danger">
                 <AlertCircle size={16} />

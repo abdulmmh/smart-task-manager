@@ -104,6 +104,7 @@ graph TD
 - Fixed `100vh` non-scrolling sidebar on desktop with independent scrollable tables, and a sliding drawer with hamburger menu on mobile devices (<=768px).
 - **Profile Dropdown Navbar**: Clicking the user avatar chip reveals a dropdown with quick links to View Profile, Change Password, and Sign Out.
 - **Profile Page**: Tabbed layout with "Personal Information" (display name editing) and "Password & Security" (password change with live strength meter and requirements checklist).
+- **Floating Toast Alerts**: A reusable app-wide component supports success, error, info, and warning variants. Task, project, and profile actions show success or error feedback, with optional actions, dismissal, and pause-on-hover/focus behavior.
 - Debounced search input (~300ms) with stale-response cancellation and bidirectional URL parameter synchronization.
 - Dot-style semantic badges and quick demo-fill buttons for instant reviewer evaluation.
 
@@ -307,6 +308,12 @@ The frontend is not containerized; run it separately with `cd frontend && npm in
 | API (Web Service, root `backend`) | Build `npm ci` · Start `node src/server.js` · Env: `NODE_ENV=production`, `DB_*` (Neon), `DB_SSL=true`, `JWT_SECRET` (random, 48+ bytes, never from the repo), `JWT_EXPIRES_IN=7d`, `CLIENT_URL=https://<frontend>.onrender.com` |
 | Frontend (Static Site, root `frontend`) | Build `npm ci && npm run build` · Publish `dist` · Env `VITE_API_URL=https://<api>.onrender.com/api` · Rewrite `/*` → `/index.html` |
 
+### One-Time Database Initialization
+
+Before the first API deployment, initialize the new database with the schema and seed data once. Configure `backend/.env` with the target Neon database credentials, then run `npm run init-db` from the `backend/` directory.
+
+> ⚠️ `npm run init-db` drops and recreates the tables. Run it only against a new or intentionally disposable database. Never use it as a recurring deploy or start command.
+
 ## Known Limitations
 
 - JWTs are stateless: tokens issued before a password change stay valid until they expire (7 days).
@@ -415,7 +422,7 @@ smart-task-manager/
 │   ├── public/_redirects        # SPA fallback (on Render add a rewrite rule in the dashboard)
 │   ├── src/
 │   │   ├── api/                 # Axios HTTP client with Bearer interceptor
-│   │   ├── components/common/   # Badge, Modal, Navbar, NotificationDropdown, Sidebar, Layout
+│   │   ├── components/common/   # Badge, Modal, Navbar, NotificationDropdown, ToastProvider, Sidebar, Layout
 │   │   │   └── NotificationDropdown.jsx
 │   │   ├── context/             # AuthContext (instant localStorage hydration, login, logout, updateUser)
 │   │   ├── pages/               # DashboardPage, ProjectsPage, TasksPage, LoginPage, RegisterPage, ProfilePage

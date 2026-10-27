@@ -634,6 +634,7 @@ All error responses return consistent, predictable JSON structures:
 | `403 Forbidden` | Insufficient role privileges | `{"error": "Access denied. Administrator privileges required for this action."}` |
 | `404 Not Found` | Target record or route does not exist | `{"error": "Task not found."}` |
 | `409 Conflict` | Unique constraint violation (e.g. duplicate email) | `{"error": "An account with this email address already exists."}` |
+| `429 Too Many Requests` | Login/register rate limit exceeded | `{"error":"Too many attempts. Please try again later."}` |
 | `500 Internal Error`| Unhandled database or server exception (sanitized) | `{"error": "Internal server error. Please try again later."}` |
 
 ---
